@@ -53,7 +53,9 @@ func main() {
 	r.Use(prometheusMiddleWare)
 	r.Path("/metrics").Handler(promhttp.Handler())
 	r.HandleFunc("/api/v3/series", handler.Series)
-	_ = http.ListenAndServe(fmt.Sprintf(":%d", 8080), r)
+	r.HandleFunc("/api/v3/importList/action/getDevices", handler.Empty)
+	r.HandleFunc("/api/v3/qualityprofile", handler.Empty)
+	_ = http.ListenAndServe(fmt.Sprintf(":%d", Port), r)
 }
 
 var (
