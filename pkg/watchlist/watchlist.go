@@ -12,40 +12,47 @@ import (
 type Entry map[string]string
 
 func Get(httpClient *http.Client, listID string, validTypes ...string) (entries []Entry, err error) {
-	watchlistURL := "https://www.imdb.com/list/" + listID + "/export"
+	var body io.ReadCloser
 
-	var resp *http.Response
-	resp, err = httpClient.Get(watchlistURL)
-
-	if err == nil {
-		defer func(Body io.ReadCloser) {
-			_ = Body.Close()
-		}(resp.Body)
-
-		if resp.StatusCode != http.StatusOK {
-			err = errors.New(resp.Status)
-		}
-	}
+	body, err = getWatchlist(httpClient, "https://www.imdb.com/list/"+listID+"/export")
 
 	if err == nil {
-		scanner := csv.NewReader(resp.Body)
+		reader := csv.NewReader(body)
 
 		var columns []string
-		columns, err = scanner.Read()
+		columns, err = reader.Read()
 
 		if err == nil {
 			log.WithFields(log.Fields{"columns": columns, "count": len(columns)}).Debug("column line read")
-			entries, err = parseEntries(scanner, columns, validTypes...)
+			entries, err = parseEntries(reader, columns, validTypes...)
 		}
+
+		_ = body.Close()
 	}
 
 	return
 }
 
-func parseEntries(scanner *csv.Reader, columns []string, validTypes ...string) (entries []Entry, err error) {
+func getWatchlist(httpClient *http.Client, watchlistURL string) (body io.ReadCloser, err error) {
+	var resp *http.Response
+	resp, err = httpClient.Get(watchlistURL)
+
+	if err == nil {
+		body = resp.Body
+
+		if resp.StatusCode != http.StatusOK {
+			_ = body.Close()
+			err = errors.New(resp.Status)
+		}
+	}
+
+	return body, err
+}
+
+func parseEntries(reader *csv.Reader, columns []string, validTypes ...string) (entries []Entry, err error) {
 	var fields []string
 	for err == nil {
-		if fields, err = scanner.Read(); err == nil {
+		if fields, err = reader.Read(); err == nil {
 			var newEntry map[string]string
 			newEntry, err = parseEntry(fields, columns)
 
