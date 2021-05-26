@@ -39,6 +39,38 @@ func TestHandler_Series_NoAPIKey(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, w.StatusCode)
 }
 
+func TestHandler_Series_FailedAPICall(t *testing.T) {
+	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
+	handler.HTTPClient = httpstub.NewTestClient(Serve)
+
+	w := newResponseWriter()
+	req, err := http.NewRequest(http.MethodGet, "", nil)
+	assert.NoError(t, err)
+	req.Header.Set("X-Api-Key", handler.APIKey)
+	handler.Series(w, req)
+	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
+}
+
+func TestHandler_Series_BadResponse(t *testing.T) {
+	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
+	handler.HTTPClient = httpstub.NewTestClient(mock.Serve)
+	mock.ServerOutput = ``
+
+	w := newResponseWriter()
+	req, err := http.NewRequest(http.MethodGet, "", nil)
+	assert.NoError(t, err)
+	req.Header.Set("X-Api-Key", handler.APIKey)
+	handler.Series(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
+}
+
+func Serve(_ *http.Request) *http.Response {
+	return &http.Response{
+		StatusCode: http.StatusInternalServerError,
+	}
+}
+
 type ResponseWriter struct {
 	StatusCode int
 	Response   string
