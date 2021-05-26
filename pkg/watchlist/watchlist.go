@@ -9,7 +9,11 @@ import (
 	"net/http"
 )
 
-type Entry map[string]string
+type Entry struct {
+	IMDBId string
+	Type   string
+	Title  string
+}
 
 func Get(httpClient *http.Client, listID string, validTypes ...string) (entries []Entry, err error) {
 	var body io.ReadCloser
@@ -22,9 +26,14 @@ func Get(httpClient *http.Client, listID string, validTypes ...string) (entries 
 		var columns []string
 		columns, err = reader.Read()
 
+		var indices map[string]int
 		if err == nil {
-			log.WithFields(log.Fields{"columns": columns, "count": len(columns)}).Debug("column line read")
-			entries, err = parseEntries(reader, columns, validTypes...)
+			indices, err = parseColumns(columns)
+		}
+
+		if err == nil {
+			log.WithFields(log.Fields{"columns": indices, "count": len(indices)}).Debug("column line read")
+			entries, err = parseEntries(reader, indices, validTypes...)
 		}
 
 		_ = body.Close()
@@ -49,14 +58,41 @@ func getWatchlist(httpClient *http.Client, watchlistURL string) (body io.ReadClo
 	return body, err
 }
 
-func parseEntries(reader *csv.Reader, columns []string, validTypes ...string) (entries []Entry, err error) {
+func parseColumns(columns []string) (indices map[string]int, err error) {
+	var mandatory = map[string]bool{
+		"Const":      false,
+		"Title":      false,
+		"Title Type": false,
+	}
+
+	indices = make(map[string]int)
+	for index, column := range columns {
+		indices[column] = index
+		mandatory[column] = true
+	}
+
+	for column, found := range mandatory {
+		if found == false {
+			log.WithField("column", column).Error("mandatory field missing")
+			err = fmt.Errorf("mandatory field missing")
+		}
+	}
+
+	return
+}
+
+func parseEntries(reader *csv.Reader, indices map[string]int, validTypes ...string) (entries []Entry, err error) {
 	var fields []string
 	for err == nil {
 		if fields, err = reader.Read(); err == nil {
-			var newEntry map[string]string
-			newEntry, err = parseEntry(fields, columns)
 
-			if err == nil && checkType(newEntry["Title Type"], validTypes...) {
+			newEntry := Entry{
+				IMDBId: fields[indices["Const"]],
+				Title:  fields[indices["Title"]],
+				Type:   fields[indices["Title Type"]],
+			}
+
+			if checkType(newEntry.Type, validTypes...) {
 				entries = append(entries, newEntry)
 				log.WithFields(log.Fields{"entries": entries, "count": len(fields)}).Debug("entry found")
 			}
@@ -65,19 +101,6 @@ func parseEntries(reader *csv.Reader, columns []string, validTypes ...string) (e
 
 	if err == io.EOF {
 		err = nil
-	}
-	return
-}
-
-func parseEntry(fields []string, columns []string) (entries map[string]string, err error) {
-	if len(fields) != len(columns) {
-		err = fmt.Errorf("unexpected csv behaviour: %d columns but %d fields", len(columns), len(fields))
-		return
-	}
-
-	entries = make(map[string]string)
-	for index, field := range fields {
-		entries[columns[index]] = field
 	}
 	return
 }

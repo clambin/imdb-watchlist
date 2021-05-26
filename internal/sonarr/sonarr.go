@@ -51,11 +51,14 @@ func (handler *Handler) buildResponse(entries []watchlist.Entry) (response strin
 	sonarrEntries := make([]Entry, 0)
 
 	for _, entry := range entries {
-		sonarrEntries = append(sonarrEntries, Entry{Title: entry["Title"], IMDBId: entry["Const"]})
+		sonarrEntries = append(sonarrEntries, Entry{
+			Title:  entry.Title,
+			IMDBId: entry.IMDBId,
+		})
 
 		log.WithFields(log.Fields{
-			"title":  entry["Title"],
-			"imdbId": entry["Const"],
+			"title":  entry.Title,
+			"imdbId": entry.IMDBId,
 			"count":  len(sonarrEntries),
 		}).Info("found an entry")
 	}

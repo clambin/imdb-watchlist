@@ -66,10 +66,8 @@ func TestGet(t *testing.T) {
 			for _, id := range test.output {
 				found := func(list []watchlist.Entry) bool {
 					for _, entry := range list {
-						if value, ok := entry["Const"]; ok {
-							if value == id {
-								return true
-							}
+						if entry.IMDBId == id {
+							return true
 						}
 					}
 					return false
