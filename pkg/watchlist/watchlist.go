@@ -3,6 +3,7 @@ package watchlist
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -12,10 +13,6 @@ type Entry map[string]string
 
 func Get(httpClient *http.Client, listID string, validTypes ...string) (entries []Entry, err error) {
 	watchlistURL := "https://www.imdb.com/list/" + listID + "/export"
-
-	if httpClient == nil {
-		httpClient = &http.Client{}
-	}
 
 	var resp *http.Response
 	resp, err = httpClient.Get(watchlistURL)
@@ -49,9 +46,10 @@ func parseEntries(scanner *csv.Reader, columns []string, validTypes ...string) (
 	var fields []string
 	for err == nil {
 		if fields, err = scanner.Read(); err == nil {
-			newEntry := parseEntry(fields, columns)
+			var newEntry map[string]string
+			newEntry, err = parseEntry(fields, columns)
 
-			if checkType(newEntry["Title Type"], validTypes...) {
+			if err == nil && checkType(newEntry["Title Type"], validTypes...) {
 				entries = append(entries, newEntry)
 				log.WithFields(log.Fields{"entries": entries, "count": len(fields)}).Debug("entry found")
 			}
@@ -64,9 +62,10 @@ func parseEntries(scanner *csv.Reader, columns []string, validTypes ...string) (
 	return
 }
 
-func parseEntry(fields []string, columns []string) (entries map[string]string) {
+func parseEntry(fields []string, columns []string) (entries map[string]string, err error) {
 	if len(fields) != len(columns) {
-		panic("unexpected csv behaviour: different number of columns & fields")
+		err = fmt.Errorf("unexpected csv behaviour: %d columns but %d fields", len(columns), len(fields))
+		return
 	}
 
 	entries = make(map[string]string)
