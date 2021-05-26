@@ -23,7 +23,7 @@ var (
 )
 
 func main() {
-	a := kingpin.New(filepath.Base(os.Args[0]), "media monitor")
+	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-watchlist")
 
 	a.Version(version.BuildVersion)
 	a.HelpFlag.Short('h')
