@@ -18,7 +18,7 @@ Binaries are available on the [release](https://github.com/clambin/imdb-watchlis
 ```
 usage: imdb-watchlist --list=LIST [<flags>]
 
-media monitor
+imdb-watchlist
 
 Flags:
   -h, --help           Show context-sensitive help (also try --help-long and --help-man).
@@ -30,7 +30,7 @@ Flags:
 
 ```
 
-If '--apikey' is not specified, imdb-watchlist will generate one automatically and list in the logfile
+If '--apikey' is not specified, imdb-watchlist will generate one automatically and list in the logfile.
 
 ### Configuring Sonarr
 
