@@ -43,6 +43,8 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 
+	log.WithField("version", version.BuildVersion).Info("imdb-watchlist starting")
+
 	if APIKey == "" {
 		APIKey = sonarr.GenerateKey()
 		log.WithField("apikey", APIKey).Info("no API Key provided. generating a new one")
