@@ -2,8 +2,8 @@ package sonarr_test
 
 import (
 	"github.com/clambin/gotools/httpstub"
-	"github.com/clambin/imdb-watchlist/internal/sonarr"
-	"github.com/clambin/imdb-watchlist/pkg/watchlist/mock"
+	"github.com/clambin/imdb-watchlist/sonarr"
+	"github.com/clambin/imdb-watchlist/watchlist/mock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"

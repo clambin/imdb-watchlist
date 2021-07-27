@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/clambin/imdb-watchlist/internal/sonarr"
-	"github.com/clambin/imdb-watchlist/internal/version"
+	"github.com/clambin/imdb-watchlist/sonarr"
+	"github.com/clambin/imdb-watchlist/version"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"

@@ -2,8 +2,8 @@ package watchlist_test
 
 import (
 	"github.com/clambin/gotools/httpstub"
-	"github.com/clambin/imdb-watchlist/pkg/watchlist"
-	"github.com/clambin/imdb-watchlist/pkg/watchlist/mock"
+	"github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/imdb-watchlist/watchlist/mock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
