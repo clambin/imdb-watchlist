@@ -9,7 +9,7 @@ Import IMDB Watchlist in Sonarr
 
 ## Installation
 
-Binaries are available on the [release](https://github.com/clambin/imdb-watchlist/releases) page. Docker images are available on [docker hub](https://hub.docker.com/r/clambin/imdb-watchlist).
+Binaries are available on the [release](https://github.com/clambin/imdb-watchlist/releases) page. Docker images are available on [ghcr.io](https://github.com/clambin/imdb-watchlist/pkgs/container/imdb-watchlist).
 
 
 ## Running
