@@ -1,16 +1,18 @@
 package watchlist_test
 
 import (
-	"github.com/clambin/gotools/httpstub"
 	"github.com/clambin/imdb-watchlist/watchlist"
 	"github.com/clambin/imdb-watchlist/watchlist/mock"
 	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
 type TestCase struct {
 	name       string
-	input      string
+	fail       bool
+	invalid    bool
 	validTypes []string
 	output     []string
 	pass       bool
@@ -19,47 +21,57 @@ type TestCase struct {
 var GetTestCases = []TestCase{
 	{
 		name:       "tvSeries",
-		input:      mock.ReferenceOutput,
+		fail:       false,
+		invalid:    false,
 		validTypes: []string{"tvSeries"},
 		output:     []string{"tt2"},
 		pass:       true,
 	},
 	{
 		name:       "movie",
-		input:      mock.ReferenceOutput,
+		fail:       false,
+		invalid:    false,
 		validTypes: []string{"movie"},
 		output:     []string{"tt1"},
 		pass:       true,
 	},
 	{
 		name:       "combined",
-		input:      mock.ReferenceOutput,
+		fail:       false,
+		invalid:    false,
 		validTypes: []string{"movie", "tvSpecial"},
 		output:     []string{"tt1", "tt3"},
 		pass:       true,
 	},
 	{
 		name:       "invalid",
-		input:      mock.InvalidOutput,
+		fail:       false,
+		invalid:    true,
 		validTypes: []string{"movie", "tvSpecial"},
 		pass:       false,
 	},
 	{
 		name:       "empty",
-		input:      mock.EmptyOutput,
+		fail:       true,
+		invalid:    false,
 		validTypes: []string{"movie", "tvSpecial"},
 		pass:       false,
 	},
 }
 
 func TestGet(t *testing.T) {
-	server := httpstub.NewTestClient(mock.Serve)
+	handler := mock.Handler{}
+	server := httptest.NewServer(http.HandlerFunc(handler.Handle))
+	defer server.Close()
+
+	client := watchlist.Client{URL: server.URL}
 
 	for _, test := range GetTestCases {
 
-		mock.ServerOutput = test.input
+		handler.Fail = test.fail
+		handler.Invalid = test.invalid
 
-		entries, err := watchlist.Get(server, "1", test.validTypes...)
+		entries, err := client.Watchlist("1", test.validTypes...)
 
 		if test.pass {
 			assert.NoError(t, err, test.name)

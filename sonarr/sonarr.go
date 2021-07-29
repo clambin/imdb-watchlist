@@ -1,17 +1,22 @@
 package sonarr
 
 import (
+	"github.com/clambin/imdb-watchlist/watchlist"
 	"net/http"
 )
 
 type Handler struct {
-	HTTPClient *http.Client
-	APIKey     string
-	ListID     string
+	Client *watchlist.Client
+	APIKey string
+	ListID string
 }
 
 func New(apiKey, listID string) *Handler {
-	return &Handler{HTTPClient: &http.Client{}, APIKey: apiKey, ListID: listID}
+	return &Handler{
+		Client: &watchlist.Client{},
+		APIKey: apiKey,
+		ListID: listID,
+	}
 }
 
 func (handler *Handler) authenticate(req *http.Request) bool {

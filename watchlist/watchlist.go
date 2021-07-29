@@ -9,16 +9,29 @@ import (
 	"net/http"
 )
 
+type Client struct {
+	HTTPClient *http.Client
+	URL        string
+}
+
 type Entry struct {
 	IMDBId string
 	Type   string
 	Title  string
 }
 
-func Get(httpClient *http.Client, listID string, validTypes ...string) (entries []Entry, err error) {
-	var body io.ReadCloser
+func (client *Client) init() {
+	if client.HTTPClient == nil {
+		client.HTTPClient = &http.Client{}
+	}
+	if client.URL == "" {
+		client.URL = "https://www.imdb.com"
+	}
+}
 
-	body, err = getWatchlist(httpClient, "https://www.imdb.com/list/"+listID+"/export")
+func (client *Client) Watchlist(listID string, validTypes ...string) (entries []Entry, err error) {
+	var body io.ReadCloser
+	body, err = client.getWatchlist(listID)
 
 	if err == nil {
 		reader := csv.NewReader(body)
@@ -42,9 +55,12 @@ func Get(httpClient *http.Client, listID string, validTypes ...string) (entries 
 	return
 }
 
-func getWatchlist(httpClient *http.Client, watchlistURL string) (body io.ReadCloser, err error) {
+func (client *Client) getWatchlist(listID string) (body io.ReadCloser, err error) {
+	client.init()
+	watchListURL := client.URL + "/list/" + listID + "/export"
+
 	var resp *http.Response
-	resp, err = httpClient.Get(watchlistURL)
+	resp, err = client.HTTPClient.Get(watchListURL)
 
 	if err == nil {
 		body = resp.Body

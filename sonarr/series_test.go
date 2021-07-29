@@ -1,18 +1,21 @@
 package sonarr_test
 
 import (
-	"github.com/clambin/gotools/httpstub"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/watchlist/mock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
 func TestHandler_Series(t *testing.T) {
+	testServer := &mock.Handler{}
+	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
+	defer server.Close()
+
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.HTTPClient = httpstub.NewTestClient(mock.Serve)
-	mock.ServerOutput = mock.ReferenceOutput
+	handler.Client.URL = server.URL
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
@@ -27,9 +30,12 @@ func TestHandler_Series(t *testing.T) {
 }
 
 func TestHandler_Series_NoAPIKey(t *testing.T) {
+	testServer := &mock.Handler{}
+	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
+	defer server.Close()
+
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.HTTPClient = httpstub.NewTestClient(mock.Serve)
-	mock.ServerOutput = mock.ReferenceOutput
+	handler.Client.URL = server.URL
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
@@ -40,8 +46,13 @@ func TestHandler_Series_NoAPIKey(t *testing.T) {
 }
 
 func TestHandler_Series_FailedAPICall(t *testing.T) {
+	testServer := &mock.Handler{}
+	testServer.Fail = true
+	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
+	defer server.Close()
+
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.HTTPClient = httpstub.NewTestClient(Serve)
+	handler.Client.URL = server.URL
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
@@ -50,11 +61,14 @@ func TestHandler_Series_FailedAPICall(t *testing.T) {
 	handler.Series(w, req)
 	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
 }
-
 func TestHandler_Series_BadResponse(t *testing.T) {
+	testServer := &mock.Handler{}
+	testServer.Invalid = true
+	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
+	defer server.Close()
+
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.HTTPClient = httpstub.NewTestClient(mock.Serve)
-	mock.ServerOutput = ``
+	handler.Client.URL = server.URL
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
@@ -63,12 +77,6 @@ func TestHandler_Series_BadResponse(t *testing.T) {
 	handler.Series(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
-}
-
-func Serve(_ *http.Request) *http.Response {
-	return &http.Response{
-		StatusCode: http.StatusInternalServerError,
-	}
 }
 
 type ResponseWriter struct {

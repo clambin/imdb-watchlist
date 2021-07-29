@@ -16,7 +16,7 @@ func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	entries, err := watchlist.Get(handler.HTTPClient, handler.ListID, "tvSeries")
+	entries, err := handler.Client.Watchlist(handler.ListID, "tvSeries")
 
 	if err != nil {
 		log.WithError(err).Warning("failed to get IMDB Watchlist")
@@ -27,7 +27,17 @@ func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(handler.buildResponse(entries)))
+
+	var response []byte
+	response, err = handler.buildResponse(entries)
+
+	if err != nil {
+		log.WithError(err).Error("failed to create response")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, _ = w.Write(response)
 
 }
 
@@ -36,7 +46,7 @@ type Entry struct {
 	IMDBId string `json:"imdbId"`
 }
 
-func (handler *Handler) buildResponse(entries []watchlist.Entry) (response string) {
+func (handler *Handler) buildResponse(entries []watchlist.Entry) (response []byte, err error) {
 	sonarrEntries := make([]Entry, 0)
 
 	for _, entry := range entries {
@@ -52,13 +62,5 @@ func (handler *Handler) buildResponse(entries []watchlist.Entry) (response strin
 		}).Info("found an entry")
 	}
 
-	var output []byte
-	var err error
-
-	if output, err = json.Marshal(sonarrEntries); err != nil {
-		log.WithError(err).Error("unable to build API response")
-		output = []byte{}
-	}
-
-	return string(output)
+	return json.Marshal(sonarrEntries)
 }
