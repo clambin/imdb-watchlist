@@ -79,6 +79,17 @@ func TestHandler_Series_BadResponse(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
 }
 
+func TestHandler_Empty(t *testing.T) {
+	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
+
+	w := newResponseWriter()
+	req, err := http.NewRequest(http.MethodGet, "", nil)
+	assert.NoError(t, err)
+	req.Header.Set("X-Api-Key", handler.APIKey)
+	handler.Empty(w, req)
+	assert.Equal(t, http.StatusOK, w.StatusCode)
+}
+
 type ResponseWriter struct {
 	StatusCode int
 	Response   string

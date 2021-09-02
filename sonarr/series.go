@@ -9,10 +9,7 @@ import (
 
 func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
 
-	if handler.authenticate(req) == false {
-		log.Warning("missing/invalid API key")
-		w.WriteHeader(http.StatusForbidden)
-		_, _ = w.Write([]byte("missing/invalid API key"))
+	if handler.handleAuth(w, req) == false {
 		return
 	}
 
