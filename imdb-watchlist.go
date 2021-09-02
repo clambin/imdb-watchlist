@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/clambin/gotools/metrics"
+	"context"
+	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/version"
 	log "github.com/sirupsen/logrus"
+	"github.com/xonvanetta/shutdown/pkg/shutdown"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 var (
@@ -46,22 +48,17 @@ func main() {
 		log.WithField("apikey", APIKey).Info("no API Key provided. generating a new one")
 	}
 
-	handler := sonarr.New(APIKey, ListID)
+	ctx, cancel := context.WithCancel(context.Background())
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		server.Run(ctx, Port, sonarr.New(APIKey, ListID))
+		wg.Done()
+	}()
 
-	server := metrics.NewServerWithHandlers(Port, []metrics.Handler{
-		{
-			Path:    "/api/v3/series",
-			Handler: http.HandlerFunc(handler.Series),
-		},
-		{
-			Path:    "/api/v3/importList/action/getDevices",
-			Handler: http.HandlerFunc(handler.Empty),
-		},
-		{
-			Path:    "api/v3/qualityprofile",
-			Handler: http.HandlerFunc(handler.Empty),
-		},
-	})
+	<-shutdown.Chan()
+	cancel()
+	wg.Wait()
 
-	_ = server.Run()
+	log.Info("imdb-watchlist stopped")
 }
