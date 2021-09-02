@@ -1,13 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"github.com/clambin/gotools/metrics"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/version"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
@@ -51,28 +47,21 @@ func main() {
 	}
 
 	handler := sonarr.New(APIKey, ListID)
-	r := &mux.Router{}
-	r.Use(prometheusMiddleWare)
-	r.Path("/metrics").Handler(promhttp.Handler())
-	r.HandleFunc("/api/v3/series", handler.Series)
-	r.HandleFunc("/api/v3/importList/action/getDevices", handler.Empty)
-	r.HandleFunc("/api/v3/qualityprofile", handler.Empty)
-	_ = http.ListenAndServe(fmt.Sprintf(":%d", Port), r)
-}
 
-var (
-	httpDuration = promauto.NewSummaryVec(prometheus.SummaryOpts{
-		Name: "http_duration_seconds",
-		Help: "Duration of HTTP requests.",
-	}, []string{"path"})
-)
-
-func prometheusMiddleWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		route := mux.CurrentRoute(r)
-		path, _ := route.GetPathTemplate()
-		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
-		next.ServeHTTP(w, r)
-		timer.ObserveDuration()
+	server := metrics.NewServerWithHandlers(Port, []metrics.Handler{
+		{
+			Path:    "/api/v3/series",
+			Handler: http.HandlerFunc(handler.Series),
+		},
+		{
+			Path:    "/api/v3/importList/action/getDevices",
+			Handler: http.HandlerFunc(handler.Empty),
+		},
+		{
+			Path:    "api/v3/qualityprofile",
+			Handler: http.HandlerFunc(handler.Empty),
+		},
 	})
+
+	_ = server.Run()
 }
