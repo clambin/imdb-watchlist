@@ -90,5 +90,4 @@ func TestGet(t *testing.T) {
 			assert.Error(t, err, test.name)
 		}
 	}
-
 }

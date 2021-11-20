@@ -13,7 +13,7 @@ func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	entries, err := handler.Client.Watchlist(handler.ListID, "tvSeries")
+	entries, err := handler.Client.Watchlist(handler.ListID, "tvSeries", "tvMiniSeries")
 
 	if err != nil {
 		log.WithError(err).Warning("failed to get IMDB Watchlist")
