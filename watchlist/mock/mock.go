@@ -29,6 +29,7 @@ const ReferenceOutput = `Position,Const,Created,Modified,Description,Title,URL,T
 1,tt1,,,,A Movie,,movie,,,,,,,
 2,tt2,,,,A TV Series,,tvSeries,,,,,,,
 3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
+4,tt4,,,,A TV miniseries,,tvMiniSeries,,,,,,,
 `
 
 const InvalidOutput = `Position,Const,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors

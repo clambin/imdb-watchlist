@@ -39,7 +39,7 @@ func TestRun(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	body, _ := io.ReadAll(resp.Body)
-	assert.Equal(t, `[{"title":"A TV Series","imdbId":"tt2"}]`, string(body))
+	assert.Equal(t, `[{"title":"A TV Series","imdbId":"tt2"},{"title":"A TV miniseries","imdbId":"tt4"}]`, string(body))
 	_ = resp.Body.Close()
 
 	cancel()

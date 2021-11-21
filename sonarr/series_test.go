@@ -4,6 +4,7 @@ import (
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/watchlist/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,14 +20,14 @@ func TestHandler_Series(t *testing.T) {
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Series(w, req)
 
-	assert.Equal(t, http.StatusOK, w.StatusCode)
+	require.Equal(t, http.StatusOK, w.StatusCode)
 	contentType := w.Header().Get("Content-Type")
 	assert.Equal(t, "application/json", contentType)
-	assert.Equal(t, `[{"title":"A TV Series","imdbId":"tt2"}]`, w.Response)
+	assert.Equal(t, `[{"title":"A TV Series","imdbId":"tt2"},{"title":"A TV miniseries","imdbId":"tt4"}]`, w.Response)
 }
 
 func TestHandler_Series_NoAPIKey(t *testing.T) {
@@ -39,7 +40,7 @@ func TestHandler_Series_NoAPIKey(t *testing.T) {
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	handler.Series(w, req)
 	assert.Equal(t, http.StatusForbidden, w.StatusCode)
@@ -56,7 +57,7 @@ func TestHandler_Series_FailedAPICall(t *testing.T) {
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Series(w, req)
 	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
@@ -72,7 +73,7 @@ func TestHandler_Series_BadResponse(t *testing.T) {
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Series(w, req)
 
@@ -84,14 +85,14 @@ func TestHandler_Empty(t *testing.T) {
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Empty(w, req)
 	assert.Equal(t, http.StatusForbidden, w.StatusCode)
 
 	w = newResponseWriter()
 	req, err = http.NewRequest(http.MethodGet, "", nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Empty(w, req)
 	assert.Equal(t, http.StatusOK, w.StatusCode)
