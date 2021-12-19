@@ -1,8 +1,6 @@
 package mock
 
 import (
-	log "github.com/sirupsen/logrus"
-	"html"
 	"net/http"
 )
 
@@ -11,9 +9,7 @@ type Handler struct {
 	Invalid bool
 }
 
-func (handler *Handler) Handle(w http.ResponseWriter, req *http.Request) {
-	log.WithField("path", html.EscapeString(req.URL.Path)).Debug("Handler")
-
+func (handler *Handler) Handle(w http.ResponseWriter, _ *http.Request) {
 	if handler.Fail {
 		http.Error(w, "server failure", http.StatusNotFound)
 		return
