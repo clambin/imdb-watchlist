@@ -2,6 +2,7 @@ package sonarr
 
 import (
 	log "github.com/sirupsen/logrus"
+	"html"
 	"net/http"
 )
 
@@ -11,7 +12,7 @@ func (handler *Handler) Empty(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	log.WithField("url", req.URL.String()).Info("stubbed endpoint called")
+	log.WithField("url", html.EscapeString(req.URL.String())).Info("stubbed endpoint called")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

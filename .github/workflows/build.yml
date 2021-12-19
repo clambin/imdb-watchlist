@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - okteto
 
 jobs:
   test:
@@ -26,7 +27,7 @@ jobs:
     strategy:
       matrix:
         target: [ imdb-watchlist ]
-        platform: [ linux ]
+        os: [ linux ]
         arch: [ amd64, arm, arm64 ]
     steps:
       - uses: actions/checkout@v2.4.0
@@ -39,18 +40,17 @@ jobs:
       - name: build
         env:
           TARGET: ${{ matrix.target }}
-          PLATFORM: ${{ matrix.platform }}
-          ARCH: ${{ matrix.arch }}
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
           RELEASE_VERSION: ${{ steps.vars.outputs.branch }}
         run: |
-          GOOS=$PLATFORM GOARCH=$ARCH \
-            go build \
+          CGO_ENABLED=0 go build \
               -ldflags "-X github.com/clambin/imdb-watchlist/version.BuildVersion=$RELEASE_VERSION" \
-              -o bld/$TARGET-$PLATFORM-$ARCH \
+              -o bld/$TARGET-$GOOS-$GOARCH \
               $TARGET.go
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.target }}-${{ matrix.platform }}-${{ matrix.arch }}
+          name: ${{ matrix.target }}-${{ matrix.os }}-${{ matrix.arch }}
           path: ./bld/*
   docker:
     needs: build

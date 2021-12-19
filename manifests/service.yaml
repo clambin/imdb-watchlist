@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: watchlist
+  labels:
+    app: watchlist
+  annotations:
+    dev.okteto.com/auto-ingress: "true"
+spec:
+  selector:
+    app: watchlist
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
