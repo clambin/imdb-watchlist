@@ -10,6 +10,7 @@ const (
 	size       = 32
 )
 
+// GenerateKey generates a Sonarr API Key
 func GenerateKey() (key string) {
 	rand.Seed(time.Now().UnixNano())
 	output := make([]byte, size)

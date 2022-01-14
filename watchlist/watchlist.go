@@ -9,69 +9,106 @@ import (
 	"net/http"
 )
 
+// Reader interface fetches an IMDB watchlist and returns the entries that match validTypes
+//go:generate mockery --name Reader
+type Reader interface {
+	GetAll() (entries []Entry, err error)
+	GetByTypes(validTypes ...string) (entries []Entry, err error)
+}
+
+// Client fetches an IMDB watchlist and returns the entries that match a set of types
 type Client struct {
 	HTTPClient *http.Client
+	ListID     string
 	URL        string
 }
 
+var _ Reader = &Client{}
+
+// Entry is an entry in an IMDB watchlist
 type Entry struct {
 	IMDBId string
 	Type   string
 	Title  string
 }
 
-func (client *Client) init() {
-	if client.HTTPClient == nil {
-		client.HTTPClient = &http.Client{}
+// GetAll queries an IDMB watchlist and returns all entries
+func (client *Client) GetAll() (entries []Entry, err error) {
+	var body io.ReadCloser
+	body, err = client.getWatchlist(client.ListID)
+	if err != nil {
+		return nil, fmt.Errorf("get failed: %w", err)
 	}
-	if client.URL == "" {
-		client.URL = "https://www.imdb.com"
+
+	defer func() {
+		_ = body.Close()
+	}()
+
+	reader := csv.NewReader(body)
+
+	var columns []string
+	columns, err = reader.Read()
+	if err != nil {
+		return nil, fmt.Errorf("read failed: %w", err)
 	}
+
+	var indices map[string]int
+	indices, err = parseColumns(columns)
+
+	log.WithFields(log.Fields{"columns": indices, "count": len(indices)}).Debug("column line read")
+	entries, err = parseEntries(reader, indices)
+
+	if err != nil {
+		err = fmt.Errorf("parse failed: %w", err)
+	}
+
+	return
 }
 
-func (client *Client) Watchlist(listID string, validTypes ...string) (entries []Entry, err error) {
-	var body io.ReadCloser
-	body, err = client.getWatchlist(listID)
+// GetByTypes queries an IMDB watchlist and returns the entries that match validTypes
+func (client *Client) GetByTypes(validTypes ...string) (entries []Entry, err error) {
+	var allEntries []Entry
+	allEntries, err = client.GetAll()
 
-	if err == nil {
-		reader := csv.NewReader(body)
+	if err != nil {
+		return
+	}
 
-		var columns []string
-		columns, err = reader.Read()
-
-		var indices map[string]int
-		if err == nil {
-			indices, err = parseColumns(columns)
+	for _, entry := range allEntries {
+		if checkType(entry.Type, validTypes...) {
+			entries = append(entries, entry)
 		}
-
-		if err == nil {
-			log.WithFields(log.Fields{"columns": indices, "count": len(indices)}).Debug("column line read")
-			entries, err = parseEntries(reader, indices, validTypes...)
-		}
-
-		_ = body.Close()
 	}
 
 	return
 }
 
 func (client *Client) getWatchlist(listID string) (body io.ReadCloser, err error) {
-	client.init()
-	watchListURL := client.URL + "/list/" + listID + "/export"
+	if client.HTTPClient == nil {
+		client.HTTPClient = http.DefaultClient
+	}
+	url := "https://www.imdb.com"
+	if client.URL != "" {
+		url = client.URL
+	}
+
+	watchListURL := url + "/list/" + listID + "/export"
 
 	var resp *http.Response
 	resp, err = client.HTTPClient.Get(watchListURL)
 
-	if err == nil {
-		body = resp.Body
-
-		if resp.StatusCode != http.StatusOK {
-			_ = body.Close()
-			err = errors.New(resp.Status)
-		}
+	if err != nil {
+		return
 	}
 
-	return body, err
+	body = resp.Body
+
+	if resp.StatusCode != http.StatusOK {
+		_ = body.Close()
+		err = errors.New(resp.Status)
+	}
+
+	return
 }
 
 func parseColumns(columns []string) (indices map[string]int, err error) {
@@ -90,28 +127,23 @@ func parseColumns(columns []string) (indices map[string]int, err error) {
 	for column, found := range mandatory {
 		if found == false {
 			log.WithField("column", column).Error("mandatory field missing")
-			err = fmt.Errorf("mandatory field missing")
+			return nil, fmt.Errorf("mandatory field '%s' missing", column)
 		}
 	}
 
 	return
 }
 
-func parseEntries(reader *csv.Reader, indices map[string]int, validTypes ...string) (entries []Entry, err error) {
+func parseEntries(reader *csv.Reader, indices map[string]int) (entries []Entry, err error) {
 	var fields []string
 	for err == nil {
 		if fields, err = reader.Read(); err == nil {
 
-			newEntry := Entry{
+			entries = append(entries, Entry{
 				IMDBId: fields[indices["Const"]],
 				Title:  fields[indices["Title"]],
 				Type:   fields[indices["Title Type"]],
-			}
-
-			if checkType(newEntry.Type, validTypes...) {
-				entries = append(entries, newEntry)
-				log.WithFields(log.Fields{"entries": entries, "count": len(fields)}).Debug("entry found")
-			}
+			})
 		}
 	}
 

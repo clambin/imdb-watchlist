@@ -13,23 +13,22 @@ import (
 	"sync"
 )
 
-var (
-	Debug  bool
-	Port   int
-	ListID string
-	APIKey string
-)
-
 func main() {
-	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-watchlist")
+	var (
+		debug  bool
+		port   int
+		listID string
+		apiKey string
+	)
 
+	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-watchlist")
 	a.Version(version.BuildVersion)
 	a.HelpFlag.Short('h')
 	a.VersionFlag.Short('v')
-	a.Flag("debug", "Log debug messages").BoolVar(&Debug)
-	a.Flag("port", "API listener port").Default("8080").IntVar(&Port)
-	a.Flag("list", "IMDB Watchlist ID").Required().StringVar(&ListID)
-	a.Flag("apikey", "API Key").StringVar(&APIKey)
+	a.Flag("debug", "Log debug messages").BoolVar(&debug)
+	a.Flag("port", "API listener port").Default("8080").IntVar(&port)
+	a.Flag("list", "IMDB GetByTypes ID").Required().StringVar(&listID)
+	a.Flag("apikey", "API Key").StringVar(&apiKey)
 
 	_, err := a.Parse(os.Args[1:])
 	if err != nil {
@@ -37,22 +36,22 @@ func main() {
 		os.Exit(2)
 	}
 
-	if Debug {
+	if debug {
 		log.SetLevel(log.DebugLevel)
 	}
 
 	log.WithField("version", version.BuildVersion).Info("imdb-watchlist starting")
 
-	if APIKey == "" {
-		APIKey = sonarr.GenerateKey()
-		log.WithField("apikey", APIKey).Info("no API Key provided. generating a new one")
+	if apiKey == "" {
+		apiKey = sonarr.GenerateKey()
+		log.WithField("apikey", apiKey).Info("no API Key provided. generating a new one")
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		server.Run(ctx, Port, sonarr.New(APIKey, ListID))
+		server.Run(ctx, port, sonarr.New(apiKey, listID))
 		wg.Done()
 	}()
 

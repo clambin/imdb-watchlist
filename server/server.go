@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"github.com/clambin/gotools/metrics"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	log "github.com/sirupsen/logrus"
@@ -9,6 +10,7 @@ import (
 	"time"
 )
 
+// Run starts the HTTP server that provides the Sonarr endpoints
 func Run(ctx context.Context, port int, handler *sonarr.Handler) {
 	server := metrics.NewServerWithHandlers(port, []metrics.Handler{
 		{
@@ -27,7 +29,7 @@ func Run(ctx context.Context, port int, handler *sonarr.Handler) {
 
 	go func() {
 		err := server.Run()
-		if err != http.ErrServerClosed {
+		if errors.Is(err, http.ErrServerClosed) == false {
 			log.WithError(err).Fatal("failed to start HTTP server")
 		}
 	}()

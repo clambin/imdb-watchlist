@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
-	"github.com/clambin/imdb-watchlist/watchlist/mock"
+	"github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/imdb-watchlist/watchlist/mocks"
+	fakeIMDB "github.com/clambin/imdb-watchlist/watchlist/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -15,12 +17,20 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	imdb := mock.Handler{}
+	imdb := fakeIMDB.Handler{Response: fakeIMDB.ReferenceOutput}
 	testImdb := httptest.NewServer(http.HandlerFunc(imdb.Handle))
 	defer testImdb.Close()
 
+	wl := &mocks.Reader{}
 	handler := sonarr.New("12345", "ls1234")
-	handler.Client.URL = testImdb.URL
+	handler.Client = wl
+
+	wl.
+		On("GetByTypes", "tvSeries", "tvMiniSeries").
+		Return([]watchlist.Entry{
+			{IMDBId: "tt2", Title: "A TV Series"},
+			{IMDBId: "tt4", Title: "A TV miniseries"},
+		}, nil).Once()
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -28,7 +38,7 @@ func TestRun(t *testing.T) {
 		server.Run(ctx, 8080, handler)
 	}()
 
-	assert.Eventually(t, func() bool {
+	require.Eventually(t, func() bool {
 		resp, err := http.Get("http://127.0.0.1:8080/metrics")
 		return err == nil && resp.StatusCode == http.StatusOK
 	}, 500*time.Millisecond, 10*time.Millisecond)
@@ -44,7 +54,7 @@ func TestRun(t *testing.T) {
 
 	cancel()
 
-	assert.Never(t, func() bool {
+	require.Never(t, func() bool {
 		resp, err = http.Get("http://127.0.0.1:8080/metrics")
 		return err == nil && resp.StatusCode == http.StatusOK
 	}, 100*time.Millisecond, 10*time.Millisecond)

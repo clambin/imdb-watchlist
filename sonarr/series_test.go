@@ -1,42 +1,45 @@
 package sonarr_test
 
 import (
+	"errors"
 	"github.com/clambin/imdb-watchlist/sonarr"
-	"github.com/clambin/imdb-watchlist/watchlist/mock"
+	"github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/imdb-watchlist/watchlist/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 func TestHandler_Series(t *testing.T) {
-	testServer := &mock.Handler{}
-	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
-	defer server.Close()
-
+	wl := &mocks.Reader{}
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.Client.URL = server.URL
+	handler.Client = wl
+
+	wl.
+		On("GetByTypes", "tvSeries", "tvMiniSeries").
+		Return([]watchlist.Entry{
+			{IMDBId: "tt2", Title: "A TV Series"},
+			{IMDBId: "tt4", Title: "A TV miniseries"},
+		}, nil).Once()
 
 	w := newResponseWriter()
-	req, err := http.NewRequest(http.MethodGet, "", nil)
-	require.NoError(t, err)
+	req, _ := http.NewRequest(http.MethodGet, "", nil)
+
 	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Series(w, req)
-
 	require.Equal(t, http.StatusOK, w.StatusCode)
+
 	contentType := w.Header().Get("Content-Type")
 	assert.Equal(t, "application/json", contentType)
 	assert.Equal(t, `[{"title":"A TV Series","imdbId":"tt2"},{"title":"A TV miniseries","imdbId":"tt4"}]`, w.Response)
+
+	mock.AssertExpectationsForObjects(t, wl)
 }
 
 func TestHandler_Series_NoAPIKey(t *testing.T) {
-	testServer := &mock.Handler{}
-	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
-	defer server.Close()
-
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.Client.URL = server.URL
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
@@ -47,13 +50,14 @@ func TestHandler_Series_NoAPIKey(t *testing.T) {
 }
 
 func TestHandler_Series_FailedAPICall(t *testing.T) {
-	testServer := &mock.Handler{}
-	testServer.Fail = true
-	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
-	defer server.Close()
-
+	wl := &mocks.Reader{}
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.Client.URL = server.URL
+	handler.Client = wl
+
+	wl.
+		On("GetByTypes", "tvSeries", "tvMiniSeries").
+		Return([]watchlist.Entry{}, errors.New("API call failed")).
+		Once()
 
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
@@ -61,41 +65,8 @@ func TestHandler_Series_FailedAPICall(t *testing.T) {
 	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Series(w, req)
 	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
-}
-func TestHandler_Series_BadResponse(t *testing.T) {
-	testServer := &mock.Handler{}
-	testServer.Invalid = true
-	server := httptest.NewServer(http.HandlerFunc(testServer.Handle))
-	defer server.Close()
 
-	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.Client.URL = server.URL
-
-	w := newResponseWriter()
-	req, err := http.NewRequest(http.MethodGet, "", nil)
-	require.NoError(t, err)
-	req.Header.Set("X-Api-Key", handler.APIKey)
-	handler.Series(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
-}
-
-func TestHandler_Empty(t *testing.T) {
-	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-
-	w := newResponseWriter()
-	req, err := http.NewRequest(http.MethodGet, "", nil)
-	require.NoError(t, err)
-	// req.Header.Set("X-Api-Key", handler.APIKey)
-	handler.Empty(w, req)
-	assert.Equal(t, http.StatusForbidden, w.StatusCode)
-
-	w = newResponseWriter()
-	req, err = http.NewRequest(http.MethodGet, "", nil)
-	require.NoError(t, err)
-	req.Header.Set("X-Api-Key", handler.APIKey)
-	handler.Empty(w, req)
-	assert.Equal(t, http.StatusOK, w.StatusCode)
+	mock.AssertExpectationsForObjects(t, wl)
 }
 
 type ResponseWriter struct {

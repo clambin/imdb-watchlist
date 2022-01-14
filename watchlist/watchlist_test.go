@@ -2,7 +2,7 @@ package watchlist_test
 
 import (
 	"github.com/clambin/imdb-watchlist/watchlist"
-	"github.com/clambin/imdb-watchlist/watchlist/mock"
+	"github.com/clambin/imdb-watchlist/watchlist/server"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +12,7 @@ import (
 type TestCase struct {
 	name       string
 	fail       bool
-	invalid    bool
+	response   string
 	validTypes []string
 	output     []string
 	pass       bool
@@ -22,7 +22,7 @@ var GetTestCases = []TestCase{
 	{
 		name:       "tvSeries",
 		fail:       false,
-		invalid:    false,
+		response:   server.ReferenceOutput,
 		validTypes: []string{"tvSeries"},
 		output:     []string{"tt2"},
 		pass:       true,
@@ -30,7 +30,7 @@ var GetTestCases = []TestCase{
 	{
 		name:       "movie",
 		fail:       false,
-		invalid:    false,
+		response:   server.ReferenceOutput,
 		validTypes: []string{"movie"},
 		output:     []string{"tt1"},
 		pass:       true,
@@ -38,7 +38,7 @@ var GetTestCases = []TestCase{
 	{
 		name:       "combined",
 		fail:       false,
-		invalid:    false,
+		response:   server.ReferenceOutput,
 		validTypes: []string{"movie", "tvSpecial"},
 		output:     []string{"tt1", "tt3"},
 		pass:       true,
@@ -46,32 +46,45 @@ var GetTestCases = []TestCase{
 	{
 		name:       "invalid",
 		fail:       false,
-		invalid:    true,
+		response:   server.InvalidOutput,
+		validTypes: []string{"movie", "tvSpecial"},
+		pass:       false,
+	},
+	{
+		name:       "header missing",
+		fail:       false,
+		response:   server.HeaderMissing,
 		validTypes: []string{"movie", "tvSpecial"},
 		pass:       false,
 	},
 	{
 		name:       "empty",
+		fail:       false,
+		response:   ``,
+		validTypes: []string{"movie", "tvSpecial"},
+		pass:       false,
+	},
+	{
+		name:       "error",
 		fail:       true,
-		invalid:    false,
+		response:   ``,
 		validTypes: []string{"movie", "tvSpecial"},
 		pass:       false,
 	},
 }
 
-func TestGet(t *testing.T) {
-	handler := mock.Handler{}
-	server := httptest.NewServer(http.HandlerFunc(handler.Handle))
-	defer server.Close()
+func TestGetByTypes(t *testing.T) {
+	handler := server.Handler{}
+	s := httptest.NewServer(http.HandlerFunc(handler.Handle))
 
-	client := watchlist.Client{URL: server.URL}
+	client := watchlist.Client{URL: s.URL}
 
 	for _, test := range GetTestCases {
 
 		handler.Fail = test.fail
-		handler.Invalid = test.invalid
+		handler.Response = test.response
 
-		entries, err := client.Watchlist("1", test.validTypes...)
+		entries, err := client.GetByTypes(test.validTypes...)
 
 		if test.pass {
 			assert.NoError(t, err, test.name)
@@ -90,4 +103,8 @@ func TestGet(t *testing.T) {
 			assert.Error(t, err, test.name)
 		}
 	}
+
+	s.Close()
+	_, err := client.GetByTypes("movie", "tvSpecial")
+	assert.Error(t, err)
 }

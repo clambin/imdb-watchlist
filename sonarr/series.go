@@ -7,13 +7,14 @@ import (
 	"net/http"
 )
 
+// Series queries the IMDB watchlist and returns the contained TV series as subscribe series to Sonarr
 func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
 
 	if handler.handleAuth(w, req) == false {
 		return
 	}
 
-	entries, err := handler.Client.Watchlist(handler.ListID, "tvSeries", "tvMiniSeries")
+	entries, err := handler.Client.GetByTypes("tvSeries", "tvMiniSeries")
 
 	var response []byte
 	if err == nil {
@@ -21,7 +22,7 @@ func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if err != nil {
-		log.WithError(err).Warning("failed to get IMDB Watchlist")
+		log.WithError(err).Warning("failed to get IMDB GetByTypes")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -31,6 +32,7 @@ func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(response)
 }
 
+// Entry represents an entry in the IMDB watchlist
 type Entry struct {
 	Title  string `json:"title"`
 	IMDBId string `json:"imdbId"`
@@ -49,7 +51,7 @@ func (handler *Handler) buildResponse(entries []watchlist.Entry) (response []byt
 			"title":  entry.Title,
 			"imdbId": entry.IMDBId,
 			"count":  len(sonarrEntries),
-		}).Info("found an entry")
+		}).Info("imdb watchlist entry found")
 	}
 
 	return json.Marshal(sonarrEntries)
