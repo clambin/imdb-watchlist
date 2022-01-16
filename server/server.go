@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/clambin/go-metrics"
 	"github.com/clambin/imdb-watchlist/sonarr"
-	"github.com/clambin/metrics"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"

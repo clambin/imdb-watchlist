@@ -3,7 +3,7 @@ module github.com/clambin/imdb-watchlist
 go 1.17
 
 require (
-	github.com/clambin/metrics v0.1.0
+	github.com/clambin/go-metrics v0.2.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/xonvanetta/shutdown v0.0.3
