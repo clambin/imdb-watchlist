@@ -4,10 +4,10 @@ on:
   push:
     branches:
     - master
-    - workflows
+    - docker
 
 jobs:
-  test:
+  build:
     uses: clambin/workflows/.github/workflows/build.yaml@main
     with:
       target: imdb-watchlist
