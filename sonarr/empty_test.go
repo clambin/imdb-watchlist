@@ -13,10 +13,6 @@ func TestHandler_Empty(t *testing.T) {
 
 	w := newResponseWriter()
 	req, _ := http.NewRequest(http.MethodGet, "", nil)
-	handler.Empty(w, req)
-	require.Equal(t, http.StatusForbidden, w.StatusCode)
-
-	w = newResponseWriter()
 	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Empty(w, req)
 	require.Equal(t, http.StatusOK, w.StatusCode)

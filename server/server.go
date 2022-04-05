@@ -5,35 +5,37 @@ import (
 	"errors"
 	"github.com/clambin/go-metrics"
 	"github.com/clambin/imdb-watchlist/sonarr"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
 
 // Run starts the HTTP server that provides the Sonarr endpoints
-func Run(ctx context.Context, port int, handler *sonarr.Handler) {
+func Run(ctx context.Context, port int, handler *sonarr.Handler) (err error) {
 	server := metrics.NewServerWithHandlers(port, []metrics.Handler{
 		{
 			Path:    "/api/v3/series",
-			Handler: http.HandlerFunc(handler.Series),
+			Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Series)),
 		},
 		{
 			Path:    "/api/v3/importList/action/getDevices",
-			Handler: http.HandlerFunc(handler.Empty),
+			Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Empty)),
 		},
 		{
 			Path:    "api/v3/qualityprofile",
-			Handler: http.HandlerFunc(handler.Empty),
+			Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Empty)),
 		},
 	})
 
+	ch := make(chan error)
 	go func() {
-		err := server.Run()
-		if errors.Is(err, http.ErrServerClosed) == false {
-			log.WithError(err).Fatal("failed to start HTTP server")
-		}
+		ch <- server.Run()
 	}()
 
 	<-ctx.Done()
+
 	_ = server.Shutdown(5 * time.Second)
+	if err = <-ch; errors.Is(err, http.ErrServerClosed) {
+		err = nil
+	}
+	return err
 }
