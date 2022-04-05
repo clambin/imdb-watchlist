@@ -4,6 +4,7 @@ import (
 	"net/http"
 )
 
+// AuthMiddleware checks that the request contains a valid API key
 func (handler *Handler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		passedKeys := req.Header["X-Api-Key"]
