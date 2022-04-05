@@ -8,12 +8,7 @@ import (
 )
 
 // Series queries the IMDB watchlist and returns the contained TV series as subscribe series to Sonarr
-func (handler *Handler) Series(w http.ResponseWriter, req *http.Request) {
-
-	if handler.handleAuth(w, req) == false {
-		return
-	}
-
+func (handler *Handler) Series(w http.ResponseWriter, _ *http.Request) {
 	entries, err := handler.Client.GetByTypes("tvSeries", "tvMiniSeries")
 
 	var response []byte

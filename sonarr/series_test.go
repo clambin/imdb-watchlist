@@ -27,7 +27,6 @@ func TestHandler_Series(t *testing.T) {
 	w := newResponseWriter()
 	req, _ := http.NewRequest(http.MethodGet, "", nil)
 
-	req.Header.Set("X-Api-Key", handler.APIKey)
 	handler.Series(w, req)
 	require.Equal(t, http.StatusOK, w.StatusCode)
 
@@ -36,17 +35,6 @@ func TestHandler_Series(t *testing.T) {
 	assert.Equal(t, `[{"title":"A TV Series","imdbId":"tt2"},{"title":"A TV miniseries","imdbId":"tt4"}]`, w.Response)
 
 	mock.AssertExpectationsForObjects(t, wl)
-}
-
-func TestHandler_Series_NoAPIKey(t *testing.T) {
-	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-
-	w := newResponseWriter()
-	req, err := http.NewRequest(http.MethodGet, "", nil)
-	require.NoError(t, err)
-
-	handler.Series(w, req)
-	assert.Equal(t, http.StatusForbidden, w.StatusCode)
 }
 
 func TestHandler_Series_FailedAPICall(t *testing.T) {
@@ -62,7 +50,7 @@ func TestHandler_Series_FailedAPICall(t *testing.T) {
 	w := newResponseWriter()
 	req, err := http.NewRequest(http.MethodGet, "", nil)
 	require.NoError(t, err)
-	req.Header.Set("X-Api-Key", handler.APIKey)
+
 	handler.Series(w, req)
 	assert.Equal(t, http.StatusInternalServerError, w.StatusCode)
 

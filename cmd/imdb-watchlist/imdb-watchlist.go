@@ -51,7 +51,9 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		server.Run(ctx, port, sonarr.New(apiKey, listID))
+		if err = server.Run(ctx, port, sonarr.New(apiKey, listID)); err != nil {
+			log.WithError(err).Fatal("failed to start HTTP server")
+		}
 		wg.Done()
 	}()
 
