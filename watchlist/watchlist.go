@@ -32,7 +32,7 @@ type Entry struct {
 	Title  string
 }
 
-// GetAll queries an IDMB watchlist and returns all entries
+// GetAll queries an IMDB watchlist and returns all entries
 func (client *Client) GetAll() (entries []Entry, err error) {
 	var body io.ReadCloser
 	body, err = client.getWatchlist(client.ListID)
@@ -125,7 +125,7 @@ func parseColumns(columns []string) (indices map[string]int, err error) {
 	}
 
 	for column, found := range mandatory {
-		if found == false {
+		if !found {
 			log.WithField("column", column).Error("mandatory field missing")
 			return nil, fmt.Errorf("mandatory field '%s' missing", column)
 		}

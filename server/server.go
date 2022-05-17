@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/clambin/go-metrics"
+	"github.com/clambin/go-metrics/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"net/http"
 	"time"
@@ -11,7 +11,7 @@ import (
 
 // Run starts the HTTP server that provides the Sonarr endpoints
 func Run(ctx context.Context, port int, handler *sonarr.Handler) (err error) {
-	server := metrics.NewServerWithHandlers(port, []metrics.Handler{
+	s := server.NewWithHandlers(port, []server.Handler{
 		{
 			Path:    "/api/v3/series",
 			Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Series)),
@@ -28,12 +28,12 @@ func Run(ctx context.Context, port int, handler *sonarr.Handler) (err error) {
 
 	ch := make(chan error)
 	go func() {
-		ch <- server.Run()
+		ch <- s.Run()
 	}()
 
 	<-ctx.Done()
 
-	_ = server.Shutdown(5 * time.Second)
+	_ = s.Shutdown(5 * time.Second)
 	if err = <-ch; errors.Is(err, http.ErrServerClosed) {
 		err = nil
 	}

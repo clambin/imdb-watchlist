@@ -35,7 +35,7 @@ func TestRun(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		server.Run(ctx, 8080, handler)
+		_ = server.Run(ctx, 8080, handler)
 	}()
 
 	require.Eventually(t, func() bool {

@@ -10,7 +10,7 @@ func (handler *Handler) AuthMiddleware(next http.Handler) http.Handler {
 		passedKeys := req.Header["X-Api-Key"]
 		authenticated := len(passedKeys) > 0 && passedKeys[0] == handler.APIKey
 
-		if authenticated == false {
+		if !authenticated {
 			w.WriteHeader(http.StatusForbidden)
 			_, _ = w.Write([]byte("missing/invalid API key"))
 			return
