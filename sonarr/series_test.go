@@ -2,9 +2,9 @@ package sonarr_test
 
 import (
 	"errors"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/sonarr"
-	"github.com/clambin/imdb-watchlist/watchlist"
-	"github.com/clambin/imdb-watchlist/watchlist/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

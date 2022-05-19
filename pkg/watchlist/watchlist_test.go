@@ -1,8 +1,8 @@
 package watchlist_test
 
 import (
-	"github.com/clambin/imdb-watchlist/watchlist"
-	"github.com/clambin/imdb-watchlist/watchlist/server"
+	"github.com/clambin/go-metrics/caller"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -22,7 +22,7 @@ var GetTestCases = []TestCase{
 	{
 		name:       "tvSeries",
 		fail:       false,
-		response:   server.ReferenceOutput,
+		response:   ReferenceOutput,
 		validTypes: []string{"tvSeries"},
 		output:     []string{"tt2"},
 		pass:       true,
@@ -30,7 +30,7 @@ var GetTestCases = []TestCase{
 	{
 		name:       "movie",
 		fail:       false,
-		response:   server.ReferenceOutput,
+		response:   ReferenceOutput,
 		validTypes: []string{"movie"},
 		output:     []string{"tt1"},
 		pass:       true,
@@ -38,7 +38,7 @@ var GetTestCases = []TestCase{
 	{
 		name:       "combined",
 		fail:       false,
-		response:   server.ReferenceOutput,
+		response:   ReferenceOutput,
 		validTypes: []string{"movie", "tvSpecial"},
 		output:     []string{"tt1", "tt3"},
 		pass:       true,
@@ -46,14 +46,14 @@ var GetTestCases = []TestCase{
 	{
 		name:       "invalid",
 		fail:       false,
-		response:   server.InvalidOutput,
+		response:   InvalidOutput,
 		validTypes: []string{"movie", "tvSpecial"},
 		pass:       false,
 	},
 	{
 		name:       "header missing",
 		fail:       false,
-		response:   server.HeaderMissing,
+		response:   HeaderMissing,
 		validTypes: []string{"movie", "tvSpecial"},
 		pass:       false,
 	},
@@ -74,10 +74,13 @@ var GetTestCases = []TestCase{
 }
 
 func TestGetByTypes(t *testing.T) {
-	handler := server.Handler{}
+	handler := Handler{}
 	s := httptest.NewServer(http.HandlerFunc(handler.Handle))
 
-	client := watchlist.Client{URL: s.URL}
+	client := watchlist.Client{
+		Caller: &caller.BaseClient{},
+		URL:    s.URL,
+	}
 
 	for _, test := range GetTestCases {
 
@@ -108,3 +111,40 @@ func TestGetByTypes(t *testing.T) {
 	_, err := client.GetByTypes("movie", "tvSpecial")
 	assert.Error(t, err)
 }
+
+// Handler emulates an IMDB watchlist
+type Handler struct {
+	Fail     bool   // Fail any incoming call
+	Response string // Response to return. If none is provided, defaults to ReferenceOutput
+}
+
+// Handle the incoming request
+func (handler *Handler) Handle(w http.ResponseWriter, _ *http.Request) {
+	if handler.Fail {
+		http.Error(w, "server failure", http.StatusNotFound)
+		return
+	}
+	_, _ = w.Write([]byte(handler.Response))
+}
+
+// ReferenceOutput is a valid response
+const ReferenceOutput = `Position,Const,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
+1,tt1,,,,A Movie,,movie,,,,,,,
+2,tt2,,,,A TV Series,,tvSeries,,,,,,,
+3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
+4,tt4,,,,A TV miniseries,,tvMiniSeries,,,,,,,
+`
+
+// InvalidOutput is a syntactically invalid response
+const InvalidOutput = `Position,Const,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
+1,tt1,,,,A Movie,,movie,,,,,,,
+2,tt2,,,,A TV Series,,tvSeries,,,,,,,,
+3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
+`
+
+// HeaderMissing misses a mandatory column ("Const")
+const HeaderMissing = `Position,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
+1,,,,A Movie,,movie,,,,,,,
+2,,,,A TV Series,,tvSeries,,,,,,,,
+3,,,,A TV Special,,tvSpecial,,,,,,,
+`

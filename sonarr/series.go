@@ -2,7 +2,7 @@ package sonarr
 
 import (
 	"encoding/json"
-	"github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )

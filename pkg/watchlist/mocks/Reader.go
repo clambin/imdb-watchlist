@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	watchlist "github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	mock "github.com/stretchr/testify/mock"
 )
 

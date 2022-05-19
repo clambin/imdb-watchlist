@@ -2,25 +2,20 @@ package server_test
 
 import (
 	"context"
+	"fmt"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
-	"github.com/clambin/imdb-watchlist/watchlist"
-	"github.com/clambin/imdb-watchlist/watchlist/mocks"
-	fakeIMDB "github.com/clambin/imdb-watchlist/watchlist/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 )
 
 func TestRun(t *testing.T) {
-	imdb := fakeIMDB.Handler{Response: fakeIMDB.ReferenceOutput}
-	testImdb := httptest.NewServer(http.HandlerFunc(imdb.Handle))
-	defer testImdb.Close()
-
 	wl := &mocks.Reader{}
 	handler := sonarr.New("12345", "ls1234")
 	handler.Client = wl
@@ -34,16 +29,20 @@ func TestRun(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	s := server.New(0, handler)
+
 	go func() {
-		_ = server.Run(ctx, 8080, handler)
+		_ = s.Run(ctx)
 	}()
 
+	baseURL := fmt.Sprintf("http://127.0.0.1:%d", s.Server.Port)
+
 	require.Eventually(t, func() bool {
-		resp, err := http.Get("http://127.0.0.1:8080/metrics")
+		resp, err := http.Get(baseURL + "/metrics")
 		return err == nil && resp.StatusCode == http.StatusOK
 	}, 500*time.Millisecond, 10*time.Millisecond)
 
-	req, _ := http.NewRequest(http.MethodGet, "http://127.0.0.1:8080/api/v3/series", nil)
+	req, _ := http.NewRequest(http.MethodGet, baseURL+"/api/v3/series", nil)
 	req.Header["X-Api-Key"] = []string{"12345"}
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err)
@@ -55,7 +54,7 @@ func TestRun(t *testing.T) {
 	cancel()
 
 	require.Never(t, func() bool {
-		resp, err = http.Get("http://127.0.0.1:8080/metrics")
+		resp, err = http.Get(baseURL + "/metrics")
 		return err == nil && resp.StatusCode == http.StatusOK
 	}, 100*time.Millisecond, 10*time.Millisecond)
 }

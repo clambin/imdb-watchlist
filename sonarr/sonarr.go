@@ -1,7 +1,10 @@
 package sonarr
 
 import (
-	"github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/cache"
+	"github.com/clambin/go-metrics/caller"
+	"github.com/clambin/imdb-watchlist/pkg/watchlist"
+	"time"
 )
 
 // Handler emulates a Sonarr server. It offers the necessary endpoints for a real Sonarr server to query it
@@ -15,7 +18,14 @@ type Handler struct {
 // New creates a new Handler
 func New(apiKey, listID string) *Handler {
 	return &Handler{
-		Client: &watchlist.Client{ListID: listID},
+		Client: &watchlist.Client{
+			Caller: &caller.Cacher{
+				Caller: &caller.BaseClient{},
+				Table:  caller.CacheTable{},
+				Cache:  cache.New[string, []byte](15*time.Minute, time.Hour),
+			},
+			ListID: listID,
+		},
 		APIKey: apiKey,
 	}
 }

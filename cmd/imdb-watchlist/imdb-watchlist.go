@@ -47,11 +47,13 @@ func main() {
 		log.WithField("apikey", apiKey).Info("no API Key provided. generating a new one")
 	}
 
+	s := server.New(port, sonarr.New(apiKey, listID))
+
 	ctx, cancel := context.WithCancel(context.Background())
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		if err = server.Run(ctx, port, sonarr.New(apiKey, listID)); err != nil {
+		if err = s.Run(ctx); err != nil {
 			log.WithError(err).Fatal("failed to start HTTP server")
 		}
 		wg.Done()
