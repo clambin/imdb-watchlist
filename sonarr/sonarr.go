@@ -2,7 +2,7 @@ package sonarr
 
 import (
 	"github.com/clambin/cache"
-	"github.com/clambin/go-metrics/caller"
+	"github.com/clambin/go-metrics/client"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"time"
 )
@@ -19,9 +19,9 @@ type Handler struct {
 func New(apiKey, listID string) *Handler {
 	return &Handler{
 		Client: &watchlist.Client{
-			Caller: &caller.Cacher{
-				Caller: &caller.BaseClient{},
-				Table:  caller.CacheTable{},
+			Caller: &client.Cacher{
+				Caller: &client.BaseClient{},
+				Table:  client.CacheTable{},
 				Cache:  cache.New[string, []byte](15*time.Minute, time.Hour),
 			},
 			ListID: listID,

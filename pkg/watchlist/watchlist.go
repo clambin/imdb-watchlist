@@ -4,7 +4,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	"github.com/clambin/go-metrics/caller"
+	"github.com/clambin/go-metrics/client"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -19,7 +19,7 @@ type Reader interface {
 
 // Client fetches an IMDB watchlist and returns the entries that match a set of types
 type Client struct {
-	caller.Caller
+	client.Caller
 	ListID string
 	URL    string
 }

@@ -1,7 +1,7 @@
 package watchlist_test
 
 import (
-	"github.com/clambin/go-metrics/caller"
+	"github.com/clambin/go-metrics/client"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -77,8 +77,8 @@ func TestGetByTypes(t *testing.T) {
 	handler := Handler{}
 	s := httptest.NewServer(http.HandlerFunc(handler.Handle))
 
-	client := watchlist.Client{
-		Caller: &caller.BaseClient{},
+	c := watchlist.Client{
+		Caller: &client.BaseClient{},
 		URL:    s.URL,
 	}
 
@@ -87,7 +87,7 @@ func TestGetByTypes(t *testing.T) {
 		handler.Fail = test.fail
 		handler.Response = test.response
 
-		entries, err := client.GetByTypes(test.validTypes...)
+		entries, err := c.GetByTypes(test.validTypes...)
 
 		if test.pass {
 			assert.NoError(t, err, test.name)
@@ -108,7 +108,7 @@ func TestGetByTypes(t *testing.T) {
 	}
 
 	s.Close()
-	_, err := client.GetByTypes("movie", "tvSpecial")
+	_, err := c.GetByTypes("movie", "tvSpecial")
 	assert.Error(t, err)
 }
 
