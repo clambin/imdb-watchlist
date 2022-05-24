@@ -3,7 +3,7 @@ module github.com/clambin/imdb-watchlist
 go 1.18
 
 require (
-	github.com/clambin/cache v0.0.4
+	github.com/clambin/cache v0.0.5
 	github.com/clambin/go-metrics v0.5.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
