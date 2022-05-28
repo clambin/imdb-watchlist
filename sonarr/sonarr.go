@@ -21,8 +21,8 @@ func New(apiKey, listID string) *Handler {
 		Client: &watchlist.Client{
 			Caller: &client.Cacher{
 				Caller: &client.BaseClient{},
-				Table:  client.CacheTable{},
-				Cache:  cache.New[string, []byte](15*time.Minute, time.Hour),
+				//Table:  client.CacheTable{},
+				Cache: cache.New[string, []byte](15*time.Minute, time.Hour),
 			},
 			ListID: listID,
 		},
