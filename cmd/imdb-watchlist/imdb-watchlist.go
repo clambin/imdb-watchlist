@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/version"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/xonvanetta/shutdown/pkg/shutdown"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -15,10 +19,11 @@ import (
 
 func main() {
 	var (
-		debug  bool
-		port   int
-		listID string
-		apiKey string
+		debug          bool
+		port           int
+		prometheusPort int
+		listID         string
+		apiKey         string
 	)
 
 	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-watchlist")
@@ -27,6 +32,7 @@ func main() {
 	a.VersionFlag.Short('v')
 	a.Flag("debug", "Log debug messages").BoolVar(&debug)
 	a.Flag("port", "API listener port").Default("8080").IntVar(&port)
+	a.Flag("prometheus", "Prometheus listener port").Default("9090").IntVar(&prometheusPort)
 	a.Flag("list", "IMDB GetByTypes ID").Required().StringVar(&listID)
 	a.Flag("apikey", "API Key").StringVar(&apiKey)
 
@@ -41,6 +47,8 @@ func main() {
 	}
 
 	log.WithField("version", version.BuildVersion).Info("imdb-watchlist starting")
+
+	go runPrometheusServer(prometheusPort)
 
 	if apiKey == "" {
 		apiKey = sonarr.GenerateKey()
@@ -64,4 +72,11 @@ func main() {
 	wg.Wait()
 
 	log.Info("imdb-watchlist stopped")
+}
+
+func runPrometheusServer(port int) {
+	http.Handle("/metrics", promhttp.Handler())
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); !errors.Is(err, http.ErrServerClosed) {
+		log.WithError(err).Fatal("failed to start Prometheus listener")
+	}
 }
