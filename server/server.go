@@ -2,22 +2,25 @@ package server
 
 import (
 	"context"
-	"errors"
-	"github.com/clambin/go-metrics/server"
+	"fmt"
+	"github.com/clambin/httpserver"
 	"github.com/clambin/imdb-watchlist/sonarr"
+	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
+	"sync"
 	"time"
 )
 
-// Server runs an HTTP Server that provides the Sonarr endpoints, as well as a metrics endpoint for Prometheus
 type Server struct {
-	server.Server
+	server *httpserver.Server
 }
 
 // New creates a new Server
-func New(port int, handler *sonarr.Handler) *Server {
-	return &Server{
-		Server: *server.NewWithHandlers(port, []server.Handler{
+func New(port int, handler *sonarr.Handler, r prometheus.Registerer) (*Server, error) {
+	s := new(Server)
+	options := []httpserver.Option{
+		httpserver.WithPort{Port: port},
+		httpserver.WithHandlers{Handlers: []httpserver.Handler{
 			{
 				Path:    "/api/v3/series",
 				Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Series)),
@@ -27,25 +30,40 @@ func New(port int, handler *sonarr.Handler) *Server {
 				Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Empty)),
 			},
 			{
-				Path:    "api/v3/qualityprofile",
+				Path:    "/api/v3/qualityprofile",
 				Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Empty)),
 			},
-		}),
+		}},
 	}
+	if r != nil {
+		m := httpserver.NewMetrics("imdb-watchlist")
+		m.Register(r)
+		options = append(options, httpserver.WithMetrics{Metrics: m})
+	}
+
+	var err error
+	s.server, err = httpserver.New(options...)
+	if err != nil {
+		return nil, fmt.Errorf("handler: %w", err)
+	}
+	return s, nil
 }
 
-// Run starts the HTTP server that provides the Sonarr endpoints
-func (s *Server) Run(ctx context.Context) (err error) {
-	ch := make(chan error)
+func (s *Server) GetPort() int {
+	return s.server.GetPort()
+}
+
+func (s *Server) RunWithContext(ctx context.Context) (err error) {
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
-		ch <- s.Server.Run()
+		err = s.server.Run()
+		wg.Done()
 	}()
 
 	<-ctx.Done()
+	_ = s.server.Shutdown(time.Minute)
 
-	_ = s.Server.Shutdown(5 * time.Second)
-	if err = <-ch; errors.Is(err, http.ErrServerClosed) {
-		err = nil
-	}
-	return err
+	wg.Wait()
+	return
 }

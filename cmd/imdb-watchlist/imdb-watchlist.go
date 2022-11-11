@@ -7,6 +7,7 @@ import (
 	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/version"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/xonvanetta/shutdown/pkg/shutdown"
@@ -55,13 +56,16 @@ func main() {
 		log.WithField("apikey", apiKey).Info("no API Key provided. generating a new one")
 	}
 
-	s := server.New(port, sonarr.New(apiKey, listID))
+	s, err := server.New(port, sonarr.New(apiKey, listID), prometheus.DefaultRegisterer)
+	if err != nil {
+		log.WithError(err).Fatal("failed to start server")
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		if err = s.Run(ctx); err != nil {
+		if err = s.RunWithContext(ctx); err != nil {
 			log.WithError(err).Fatal("failed to start HTTP server")
 		}
 		wg.Done()
