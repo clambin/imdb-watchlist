@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/clambin/cache v0.0.5
 	github.com/clambin/httpclient v0.1.2
-	github.com/clambin/httpserver v0.2.3-0.20221111163313-609ec84ee3a8
+	github.com/clambin/httpserver v0.3.0
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
