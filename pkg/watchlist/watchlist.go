@@ -35,19 +35,17 @@ type Entry struct {
 }
 
 // GetAll queries an IMDB watchlist and returns all entries
-func (client *Client) GetAll() (entries []Entry, err error) {
+func (client *Client) GetAll() ([]Entry, error) {
 	url := "https://www.imdb.com"
 	if client.URL != "" {
 		url = client.URL
 	}
 
 	req, _ := http.NewRequest(http.MethodGet, url+"/list/"+client.ListID+"/export", nil)
-
-	var resp *http.Response
-	resp, err = client.Caller.Do(req)
+	resp, err := client.Caller.Do(req)
 
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	defer func() {
@@ -55,51 +53,45 @@ func (client *Client) GetAll() (entries []Entry, err error) {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		err = errors.New(resp.Status)
-		return
+		return nil, errors.New(resp.Status)
 	}
 
 	return parseList(resp.Body)
 }
 
 // GetByTypes queries an IMDB watchlist and returns the entries that match validTypes
-func (client *Client) GetByTypes(validTypes ...string) (entries []Entry, err error) {
-	var allEntries []Entry
-	allEntries, err = client.GetAll()
-
-	if err != nil {
-		return
-	}
-
-	for _, entry := range allEntries {
-		if checkType(entry.Type, validTypes...) {
-			entries = append(entries, entry)
+func (client *Client) GetByTypes(validTypes ...string) ([]Entry, error) {
+	allEntries, err := client.GetAll()
+	var entries []Entry
+	if err == nil {
+		for _, entry := range allEntries {
+			if checkType(entry.Type, validTypes...) {
+				entries = append(entries, entry)
+			}
 		}
 	}
-
-	return
+	return entries, err
 }
 
-func parseList(body io.ReadCloser) (entries []Entry, err error) {
+func parseList(body io.ReadCloser) ([]Entry, error) {
 	reader := csv.NewReader(body)
 
-	var columns []string
-	columns, err = reader.Read()
+	columns, err := reader.Read()
 	if err != nil {
-		return nil, fmt.Errorf("read failed: %w", err)
+		return nil, fmt.Errorf("csv: %w", err)
 	}
 
 	var indices map[string]int
-	indices, err = parseColumns(columns)
+	indices, err = getColumnIndices(columns)
 	if err != nil {
-		return nil, fmt.Errorf("parse error: %w", err)
+		return nil, err
 	}
 
 	log.WithFields(log.Fields{"columns": indices, "count": len(indices)}).Debug("column line read")
 	return parseEntries(reader, indices)
 }
 
-func parseColumns(columns []string) (indices map[string]int, err error) {
+func getColumnIndices(columns []string) (indices map[string]int, err error) {
 	var mandatory = map[string]bool{
 		"Const":      false,
 		"Title":      false,
@@ -115,7 +107,8 @@ func parseColumns(columns []string) (indices map[string]int, err error) {
 	for column, found := range mandatory {
 		if !found {
 			log.WithField("column", column).Error("mandatory field missing")
-			return nil, fmt.Errorf("mandatory field '%s' missing", column)
+			err = fmt.Errorf("watchlist: mandatory field '%s' missing", column)
+			break
 		}
 	}
 

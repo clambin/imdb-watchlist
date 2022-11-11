@@ -16,8 +16,8 @@ type Server struct {
 }
 
 // New creates a new Server
-func New(port int, handler *sonarr.Handler, r prometheus.Registerer) (*Server, error) {
-	s := new(Server)
+func New(port int, handler *sonarr.Handler, r prometheus.Registerer) (s *Server, err error) {
+	s = new(Server)
 	options := []httpserver.Option{
 		httpserver.WithPort{Port: port},
 		httpserver.WithHandlers{Handlers: []httpserver.Handler{
@@ -41,7 +41,6 @@ func New(port int, handler *sonarr.Handler, r prometheus.Registerer) (*Server, e
 		options = append(options, httpserver.WithMetrics{Metrics: m})
 	}
 
-	var err error
 	s.server, err = httpserver.New(options...)
 	if err != nil {
 		return nil, fmt.Errorf("handler: %w", err)
