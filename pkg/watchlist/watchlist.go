@@ -4,13 +4,14 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	"github.com/clambin/go-metrics/client"
+	"github.com/clambin/httpclient"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 )
 
 // Reader interface fetches an IMDB watchlist and returns the entries that match validTypes
+//
 //go:generate mockery --name Reader
 type Reader interface {
 	GetAll() (entries []Entry, err error)
@@ -19,7 +20,7 @@ type Reader interface {
 
 // Client fetches an IMDB watchlist and returns the entries that match a set of types
 type Client struct {
-	client.Caller
+	httpclient.Caller
 	ListID string
 	URL    string
 }

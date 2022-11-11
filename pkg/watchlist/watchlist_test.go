@@ -1,7 +1,7 @@
 package watchlist_test
 
 import (
-	"github.com/clambin/go-metrics/client"
+	"github.com/clambin/httpclient"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -78,7 +78,7 @@ func TestGetByTypes(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(handler.Handle))
 
 	c := watchlist.Client{
-		Caller: &client.BaseClient{},
+		Caller: &httpclient.BaseClient{},
 		URL:    s.URL,
 	}
 
