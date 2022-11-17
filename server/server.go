@@ -18,8 +18,9 @@ type Server struct {
 // New creates a new Server
 func New(port int, handler *sonarr.Handler, r prometheus.Registerer) (s *Server, err error) {
 	s = new(Server)
-	options := []httpserver.Option{
+	s.server, err = httpserver.New(
 		httpserver.WithPort{Port: port},
+		httpserver.WithMetrics{Metrics: httpserver.NewAvgMetrics("imdb-watchlist", r)},
 		httpserver.WithHandlers{Handlers: []httpserver.Handler{
 			{
 				Path:    "/api/v3/series",
@@ -34,14 +35,7 @@ func New(port int, handler *sonarr.Handler, r prometheus.Registerer) (s *Server,
 				Handler: handler.AuthMiddleware(http.HandlerFunc(handler.Empty)),
 			},
 		}},
-	}
-	if r != nil {
-		m := httpserver.NewMetrics("imdb-watchlist")
-		m.Register(r)
-		options = append(options, httpserver.WithMetrics{Metrics: m})
-	}
-
-	s.server, err = httpserver.New(options...)
+	)
 	if err != nil {
 		return nil, fmt.Errorf("handler: %w", err)
 	}
