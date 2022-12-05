@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/clambin/httpserver"
 	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/version"
@@ -56,7 +57,10 @@ func main() {
 		log.WithField("apikey", apiKey).Info("no API Key provided. generating a new one")
 	}
 
-	s, err := server.New(port, sonarr.New(apiKey, listID), prometheus.DefaultRegisterer)
+	metrics := httpserver.NewAvgMetrics("imdb-watchlist")
+	prometheus.MustRegister(metrics)
+
+	s, err := server.New(port, sonarr.New(apiKey, listID), metrics)
 	if err != nil {
 		log.WithError(err).Fatal("failed to start server")
 	}
