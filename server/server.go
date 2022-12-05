@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/clambin/httpserver"
 	"github.com/clambin/imdb-watchlist/sonarr"
-	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
 	"sync"
 	"time"
@@ -16,11 +15,11 @@ type Server struct {
 }
 
 // New creates a new Server
-func New(port int, handler *sonarr.Handler, r prometheus.Registerer) (s *Server, err error) {
+func New(port int, handler *sonarr.Handler, metrics httpserver.Metrics) (s *Server, err error) {
 	s = new(Server)
 	s.server, err = httpserver.New(
 		httpserver.WithPort{Port: port},
-		httpserver.WithMetrics{Metrics: httpserver.NewAvgMetrics("imdb-watchlist", r)},
+		httpserver.WithMetrics{Metrics: metrics},
 		httpserver.WithHandlers{Handlers: []httpserver.Handler{
 			{
 				Path:    "/api/v3/series",

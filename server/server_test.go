@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/clambin/httpserver"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/server"
@@ -37,7 +38,10 @@ func TestRun(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	r := prometheus.NewRegistry()
-	s, err := server.New(0, handler, r)
+	metrics := httpserver.NewAvgMetrics("watchlist")
+	r.MustRegister(metrics)
+
+	s, err := server.New(0, handler, metrics)
 	require.NoError(t, err)
 
 	go func() {
