@@ -1,7 +1,7 @@
 package sonarr
 
 import (
-	"github.com/clambin/cache"
+	"github.com/clambin/go-common/cache"
 	"github.com/clambin/go-common/httpclient"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"time"
