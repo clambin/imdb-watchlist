@@ -4,7 +4,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	"github.com/clambin/httpclient"
+	"github.com/clambin/go-common/httpclient"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"

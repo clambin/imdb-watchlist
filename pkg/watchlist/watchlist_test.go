@@ -1,7 +1,7 @@
 package watchlist_test
 
 import (
-	"github.com/clambin/httpclient"
+	"github.com/clambin/go-common/httpclient"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"github.com/stretchr/testify/assert"
 	"net/http"
