@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/clambin/httpserver"
+	"github.com/clambin/go-common/httpserver"
 	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/version"
