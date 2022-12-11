@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/clambin/go-common/httpserver"
 	"github.com/clambin/imdb-watchlist/server"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"github.com/clambin/imdb-watchlist/version"
@@ -57,19 +56,18 @@ func main() {
 		log.WithField("apikey", apiKey).Info("no API Key provided. generating a new one")
 	}
 
-	metrics := httpserver.NewAvgMetrics("imdb-watchlist")
-	prometheus.MustRegister(metrics)
-
-	s, err := server.New(port, sonarr.New(apiKey, listID), metrics)
+	h := sonarr.New(apiKey, listID)
+	s, err := server.New(port, h)
 	if err != nil {
 		log.WithError(err).Fatal("failed to start server")
 	}
+	prometheus.MustRegister(s.HTTPServer, h)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		if err = s.RunWithContext(ctx); err != nil {
+		if err = s.RunWithContext(ctx); !errors.Is(err, http.ErrServerClosed) {
 			log.WithError(err).Fatal("failed to start HTTP server")
 		}
 		wg.Done()

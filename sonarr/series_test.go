@@ -15,7 +15,7 @@ import (
 func TestHandler_Series(t *testing.T) {
 	wl := &mocks.Reader{}
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.Client = wl
+	handler.Reader = wl
 
 	wl.
 		On("GetByTypes", "tvSeries", "tvMiniSeries").
@@ -40,7 +40,7 @@ func TestHandler_Series(t *testing.T) {
 func TestHandler_Series_FailedAPICall(t *testing.T) {
 	wl := &mocks.Reader{}
 	handler := sonarr.New(sonarr.GenerateKey(), "ls001")
-	handler.Client = wl
+	handler.Reader = wl
 
 	wl.
 		On("GetByTypes", "tvSeries", "tvMiniSeries").

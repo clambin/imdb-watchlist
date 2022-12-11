@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/clambin/httpserver"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/server"
@@ -26,7 +25,7 @@ var update = flag.Bool("update", false, "update golden images")
 func TestRun(t *testing.T) {
 	handler := sonarr.New("12345", "ls1234")
 	wl := mocks.NewReader(t)
-	handler.Client = wl
+	handler.Reader = wl
 
 	wl.
 		On("GetByTypes", "tvSeries", "tvMiniSeries").
@@ -37,12 +36,11 @@ func TestRun(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	r := prometheus.NewRegistry()
-	metrics := httpserver.NewAvgMetrics("watchlist")
-	r.MustRegister(metrics)
-
-	s, err := server.New(0, handler, metrics)
+	s, err := server.New(0, handler)
 	require.NoError(t, err)
+
+	r := prometheus.NewRegistry()
+	r.MustRegister(s.HTTPServer)
 
 	go func() {
 		_ = s.RunWithContext(ctx)
@@ -93,6 +91,6 @@ func TestRun(t *testing.T) {
 
 func TestServer_BadPort(t *testing.T) {
 	handler := sonarr.New("12345", "ls1234")
-	_, err := server.New(-1, handler, nil)
+	_, err := server.New(-1, handler)
 	require.Error(t, err)
 }

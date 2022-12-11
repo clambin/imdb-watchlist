@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/clambin/httpserver"
+	"github.com/clambin/go-common/httpserver"
 	"github.com/clambin/imdb-watchlist/sonarr"
 	"net/http"
 	"sync"
@@ -11,15 +11,15 @@ import (
 )
 
 type Server struct {
-	server *httpserver.Server
+	HTTPServer *httpserver.Server
 }
 
 // New creates a new Server
-func New(port int, handler *sonarr.Handler, metrics httpserver.Metrics) (s *Server, err error) {
+func New(port int, handler *sonarr.Handler) (s *Server, err error) {
 	s = new(Server)
-	s.server, err = httpserver.New(
+	s.HTTPServer, err = httpserver.New(
 		httpserver.WithPort{Port: port},
-		httpserver.WithMetrics{Metrics: metrics},
+		httpserver.WithMetrics{Application: "imdb-watchlist"},
 		httpserver.WithHandlers{Handlers: []httpserver.Handler{
 			{
 				Path:    "/api/v3/series",
@@ -42,19 +42,19 @@ func New(port int, handler *sonarr.Handler, metrics httpserver.Metrics) (s *Serv
 }
 
 func (s *Server) GetPort() int {
-	return s.server.GetPort()
+	return s.HTTPServer.GetPort()
 }
 
 func (s *Server) RunWithContext(ctx context.Context) (err error) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		err = s.server.Run()
+		err = s.HTTPServer.Serve()
 		wg.Done()
 	}()
 
 	<-ctx.Done()
-	_ = s.server.Shutdown(time.Minute)
+	_ = s.HTTPServer.Shutdown(time.Minute)
 
 	wg.Wait()
 	return

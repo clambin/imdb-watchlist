@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	"github.com/clambin/go-common/httpclient"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -20,9 +19,9 @@ type Reader interface {
 
 // Client fetches an IMDB watchlist and returns the entries that match a set of types
 type Client struct {
-	httpclient.Caller
-	ListID string
-	URL    string
+	HTTPClient *http.Client
+	ListID     string
+	URL        string
 }
 
 var _ Reader = &Client{}
@@ -42,7 +41,7 @@ func (client *Client) GetAll() ([]Entry, error) {
 	}
 
 	req, _ := http.NewRequest(http.MethodGet, url+"/list/"+client.ListID+"/export", nil)
-	resp, err := client.Caller.Do(req)
+	resp, err := client.HTTPClient.Do(req)
 
 	if err != nil {
 		return nil, err
