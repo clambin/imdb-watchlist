@@ -9,8 +9,8 @@ import (
 	"github.com/clambin/imdb-watchlist/version"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
 	"github.com/xonvanetta/shutdown/pkg/shutdown"
+	"golang.org/x/exp/slog"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
 	"os"
@@ -43,23 +43,27 @@ func main() {
 		os.Exit(2)
 	}
 
+	var opts slog.HandlerOptions
 	if debug {
-		log.SetLevel(log.DebugLevel)
+		opts.Level = slog.LevelDebug
+		opts.AddSource = true
 	}
+	slog.SetDefault(slog.New(opts.NewTextHandler(os.Stdout)))
 
-	log.WithField("version", version.BuildVersion).Info("imdb-watchlist starting")
+	slog.Info("imdb-watchlist starting", "version", version.BuildVersion)
 
 	go runPrometheusServer(prometheusPort)
 
 	if apiKey == "" {
 		apiKey = sonarr.GenerateKey()
-		log.WithField("apikey", apiKey).Info("no API Key provided. generating a new one")
+		slog.Info("no API Key provided. generating a new one", "apikey", apiKey)
 	}
 
 	h := sonarr.New(apiKey, listID)
 	s, err := server.New(port, h)
 	if err != nil {
-		log.WithError(err).Fatal("failed to start server")
+		slog.Error("failed to start server", err)
+		panic(err)
 	}
 	prometheus.MustRegister(s.HTTPServer, h)
 
@@ -68,7 +72,8 @@ func main() {
 	wg.Add(1)
 	go func() {
 		if err = s.RunWithContext(ctx); !errors.Is(err, http.ErrServerClosed) {
-			log.WithError(err).Fatal("failed to start HTTP server")
+			slog.Error("failed to start HTTP server", err)
+			panic(err)
 		}
 		wg.Done()
 	}()
@@ -77,12 +82,12 @@ func main() {
 	cancel()
 	wg.Wait()
 
-	log.Info("imdb-watchlist stopped")
+	slog.Info("imdb-watchlist stopped")
 }
 
 func runPrometheusServer(port int) {
 	http.Handle("/metrics", promhttp.Handler())
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); !errors.Is(err, http.ErrServerClosed) {
-		log.WithError(err).Fatal("failed to start Prometheus listener")
+		slog.Error("failed to start Prometheus listener", err)
 	}
 }

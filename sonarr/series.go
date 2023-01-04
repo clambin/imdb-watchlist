@@ -3,7 +3,7 @@ package sonarr
 import (
 	"encoding/json"
 	"github.com/clambin/imdb-watchlist/pkg/watchlist"
-	log "github.com/sirupsen/logrus"
+	"golang.org/x/exp/slog"
 	"net/http"
 )
 
@@ -17,13 +17,12 @@ func (handler *Handler) Series(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	if err != nil {
-		log.WithError(err).Warning("failed to get IMDB GetByTypes")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(response)
 }
 
@@ -42,11 +41,11 @@ func (handler *Handler) buildResponse(entries []watchlist.Entry) (response []byt
 			IMDBId: entry.IMDBId,
 		})
 
-		log.WithFields(log.Fields{
-			"title":  entry.Title,
-			"imdbId": entry.IMDBId,
-			"count":  len(sonarrEntries),
-		}).Info("imdb watchlist entry found")
+		slog.Info("imdb watchlist entry found",
+			"title", entry.Title,
+			"imdbId", entry.IMDBId,
+			"count", len(sonarrEntries),
+		)
 	}
 
 	return json.Marshal(sonarrEntries)

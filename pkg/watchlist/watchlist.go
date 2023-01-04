@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 )
@@ -86,7 +85,6 @@ func parseList(body io.ReadCloser) ([]Entry, error) {
 		return nil, err
 	}
 
-	log.WithFields(log.Fields{"columns": indices, "count": len(indices)}).Debug("column line read")
 	return parseEntries(reader, indices)
 }
 
@@ -105,7 +103,6 @@ func getColumnIndices(columns []string) (indices map[string]int, err error) {
 
 	for column, found := range mandatory {
 		if !found {
-			log.WithField("column", column).Error("mandatory field missing")
 			err = fmt.Errorf("watchlist: mandatory field '%s' missing", column)
 			break
 		}
