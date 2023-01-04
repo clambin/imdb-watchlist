@@ -14,7 +14,7 @@ func (s *Server) getSeries() ([]Entry, error) {
 	return buildSeriesResponse(entries), nil
 }
 
-// Entry represents an entry in the IMDB imdb
+// Entry represents an entry in the IMDB watchlist
 type Entry struct {
 	Title  string `json:"title"`
 	IMDBId string `json:"imdbId"`
@@ -29,7 +29,7 @@ func buildSeriesResponse(entries []imdb.Entry) []Entry {
 			IMDBId: entry.IMDBId,
 		})
 
-		slog.Info("imdb imdb entry found",
+		slog.Info("imdb watchlist entry found",
 			"title", entry.Title,
 			"imdbId", entry.IMDBId,
 			"count", len(sonarrEntries),

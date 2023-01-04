@@ -27,7 +27,7 @@ func main() {
 		apiKey         string
 	)
 
-	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-imdb")
+	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-watchlist")
 	a.Version(version.BuildVersion)
 	a.HelpFlag.Short('h')
 	a.VersionFlag.Short('v')

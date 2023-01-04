@@ -23,7 +23,7 @@ func (s *Server) MakeRouter() http.Handler {
 	r := chi.NewRouter()
 
 	s.metrics = middleware.NewPrometheusMetrics(middleware.PrometheusMetricsOptions{
-		Application: "imdb-imdb",
+		Application: "imdb-watchlist",
 	})
 
 	r.Use(chiMiddleware.Logger)

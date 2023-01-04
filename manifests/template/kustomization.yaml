@@ -7,8 +7,8 @@ secretGenerator:
 - literals:
   - api_key=$SONARR_APIKEY
   - list_id=$IMDB_LISTID
-  name: imdb
+  name: watchlist
   type: Opaque
 images:
-- name: ghcr.io/clambin/imdb-imdb
+- name: ghcr.io/clambin/imdb-watchlist
   newTag: $TAG      

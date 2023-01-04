@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-// Reader interface fetches an IMDB imdb and returns the entries that match validTypes
+// Reader interface fetches an IMDB watchlist and returns the entries that match validTypes
 //
 //go:generate mockery --name Reader
 type Reader interface {
@@ -16,7 +16,7 @@ type Reader interface {
 	GetByTypes(validTypes ...string) (entries []Entry, err error)
 }
 
-// Client fetches an IMDB imdb and returns the entries that match a set of types
+// Client fetches an IMDB watchlist and returns the entries that match a set of types
 type Client struct {
 	HTTPClient *http.Client
 	ListID     string
@@ -25,14 +25,14 @@ type Client struct {
 
 var _ Reader = &Client{}
 
-// Entry is an entry in an IMDB imdb
+// Entry is an entry in an IMDB watchlist
 type Entry struct {
 	IMDBId string
 	Type   string
 	Title  string
 }
 
-// GetAll queries an IMDB imdb and returns all entries
+// GetAll queries an IMDB watchlist and returns all entries
 func (client *Client) GetAll() ([]Entry, error) {
 	url := "https://www.imdb.com"
 	if client.URL != "" {
@@ -57,7 +57,7 @@ func (client *Client) GetAll() ([]Entry, error) {
 	return parseList(resp.Body)
 }
 
-// GetByTypes queries an IMDB imdb and returns the entries that match validTypes
+// GetByTypes queries an IMDB watchlist and returns the entries that match validTypes
 func (client *Client) GetByTypes(validTypes ...string) ([]Entry, error) {
 	allEntries, err := client.GetAll()
 	var entries []Entry

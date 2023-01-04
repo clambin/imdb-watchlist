@@ -15,11 +15,11 @@ spec:
         app: watchlist
     spec:
       containers:
-      - name: imdb
-        image: ghcr.io/clambin/imdb-imdb
+      - name: watchlist
+        image: ghcr.io/clambin/imdb-watchlist
         envFrom:
         - secretRef:
-            name: imdb
+            name: watchlist
         args:
         - '--apikey=$(api_key)'
         - '--list=$(list_id)'

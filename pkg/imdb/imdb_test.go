@@ -111,7 +111,7 @@ func TestGetByTypes(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// Handler emulates an IMDB imdb
+// Handler emulates an IMDB watchlist
 type Handler struct {
 	Fail     bool   // Fail any incoming call
 	Response string // Response to return. If none is provided, defaults to ReferenceOutput
