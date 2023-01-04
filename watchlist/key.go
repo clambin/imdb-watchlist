@@ -1,4 +1,4 @@
-package sonarr
+package watchlist
 
 import (
 	"math/rand"

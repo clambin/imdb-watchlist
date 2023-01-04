@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"github.com/clambin/imdb-watchlist/server"
-	"github.com/clambin/imdb-watchlist/sonarr"
+	"github.com/clambin/go-common/httpclient"
+	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/clambin/imdb-watchlist/version"
+	"github.com/clambin/imdb-watchlist/watchlist"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/xonvanetta/shutdown/pkg/shutdown"
@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
+	"time"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 		apiKey         string
 	)
 
-	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-watchlist")
+	a := kingpin.New(filepath.Base(os.Args[0]), "imdb-imdb")
 	a.Version(version.BuildVersion)
 	a.HelpFlag.Short('h')
 	a.VersionFlag.Short('v')
@@ -52,35 +52,37 @@ func main() {
 
 	slog.Info("imdb-watchlist starting", "version", version.BuildVersion)
 
-	go runPrometheusServer(prometheusPort)
-
 	if apiKey == "" {
-		apiKey = sonarr.GenerateKey()
+		apiKey = watchlist.GenerateKey()
 		slog.Info("no API Key provided. generating a new one", "apikey", apiKey)
 	}
 
-	h := sonarr.New(apiKey, listID)
-	s, err := server.New(port, h)
-	if err != nil {
-		slog.Error("failed to start server", err)
-		panic(err)
+	handler := watchlist.Server{
+		APIKey: apiKey,
+		Reader: &imdb.Client{
+			HTTPClient: &http.Client{Transport: httpclient.NewRoundTripper(
+				httpclient.WithCache{
+					DefaultExpiry:   15 * time.Minute,
+					CleanupInterval: time.Hour,
+				},
+			)},
+			ListID: listID,
+		},
 	}
-	prometheus.MustRegister(s.HTTPServer, h)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	server := &http.Server{Addr: ":8080", Handler: handler.MakeRouter()}
+	prometheus.MustRegister(&handler)
+
 	go func() {
-		if err = s.RunWithContext(ctx); !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start HTTP server", err)
-			panic(err)
+		if err2 := server.ListenAndServe(); !errors.Is(err2, http.ErrServerClosed) {
+			slog.Error("failed to start server", err2)
+			panic(err2)
 		}
-		wg.Done()
 	}()
 
+	go runPrometheusServer(prometheusPort)
+
 	<-shutdown.Chan()
-	cancel()
-	wg.Wait()
 
 	slog.Info("imdb-watchlist stopped")
 }

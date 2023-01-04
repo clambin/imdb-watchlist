@@ -1,7 +1,7 @@
-package watchlist_test
+package imdb_test
 
 import (
-	"github.com/clambin/imdb-watchlist/pkg/watchlist"
+	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -76,7 +76,7 @@ func TestGetByTypes(t *testing.T) {
 	handler := Handler{}
 	s := httptest.NewServer(http.HandlerFunc(handler.Handle))
 
-	c := watchlist.Client{
+	c := imdb.Client{
 		HTTPClient: http.DefaultClient,
 		URL:        s.URL,
 	}
@@ -91,7 +91,7 @@ func TestGetByTypes(t *testing.T) {
 		if test.pass {
 			assert.NoError(t, err, test.name)
 			for _, id := range test.output {
-				found := func(list []watchlist.Entry) bool {
+				found := func(list []imdb.Entry) bool {
 					for _, entry := range list {
 						if entry.IMDBId == id {
 							return true
@@ -111,7 +111,7 @@ func TestGetByTypes(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// Handler emulates an IMDB watchlist
+// Handler emulates an IMDB imdb
 type Handler struct {
 	Fail     bool   // Fail any incoming call
 	Response string // Response to return. If none is provided, defaults to ReferenceOutput
