@@ -13,18 +13,35 @@ import (
 
 type Server struct {
 	APIKey  string
-	Reader  imdb.Reader
+	Reader  Reader
 	metrics *middleware.PrometheusMetrics
 }
 
 var _ prometheus.Collector = &Server{}
 
+// Reader interface reads an IMDB watchlist
+//
+//go:generate mockery --name Reader
+type Reader interface {
+	ReadByTypes(validTypes ...string) (entries []imdb.Entry, err error)
+}
+
+var _ Reader = &imdb.Client{}
+
+func New(apiKey string, reader Reader) *Server {
+	s := Server{
+		APIKey: apiKey,
+		Reader: reader,
+		metrics: middleware.NewPrometheusMetrics(middleware.PrometheusMetricsOptions{
+			Application: "imdb-watchlist",
+		}),
+	}
+
+	return &s
+}
+
 func (s *Server) MakeRouter() http.Handler {
 	r := chi.NewRouter()
-
-	s.metrics = middleware.NewPrometheusMetrics(middleware.PrometheusMetricsOptions{
-		Application: "imdb-watchlist",
-	})
 
 	r.Use(chiMiddleware.Logger)
 	r.Use(Authenticate(s.APIKey))

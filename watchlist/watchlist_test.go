@@ -2,8 +2,8 @@ package watchlist_test
 
 import (
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/clambin/imdb-watchlist/pkg/imdb/mocks"
 	"github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/imdb-watchlist/watchlist/mocks"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -15,13 +15,13 @@ import (
 
 func TestServer_MakeRouter(t *testing.T) {
 	reader := mocks.NewReader(t)
-	reader.On("GetByTypes", "tvSeries", "tvMiniSeries").Return([]imdb.Entry{}, nil)
+	reader.On("ReadByTypes", "tvSeries", "tvMiniSeries").Return([]imdb.Entry{}, nil)
 
-	s := watchlist.Server{APIKey: "1234", Reader: reader}
+	s := watchlist.New("1234", reader)
 	r := s.MakeRouter()
 
 	reg := prometheus.NewPedanticRegistry()
-	reg.MustRegister(&s)
+	reg.MustRegister(s)
 
 	tests := []struct {
 		name       string

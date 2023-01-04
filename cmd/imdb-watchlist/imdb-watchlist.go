@@ -34,7 +34,7 @@ func main() {
 	a.Flag("debug", "Log debug messages").BoolVar(&debug)
 	a.Flag("port", "API listener port").Default("8080").IntVar(&port)
 	a.Flag("prometheus", "Prometheus listener port").Default("9090").IntVar(&prometheusPort)
-	a.Flag("list", "IMDB GetByTypes ID").Required().StringVar(&listID)
+	a.Flag("list", "IMDB List ID").Required().StringVar(&listID)
 	a.Flag("apikey", "API Key").StringVar(&apiKey)
 
 	_, err := a.Parse(os.Args[1:])
@@ -57,21 +57,18 @@ func main() {
 		slog.Info("no API Key provided. generating a new one", "apikey", apiKey)
 	}
 
-	handler := watchlist.Server{
-		APIKey: apiKey,
-		Reader: &imdb.Client{
-			HTTPClient: &http.Client{Transport: httpclient.NewRoundTripper(
-				httpclient.WithCache{
-					DefaultExpiry:   15 * time.Minute,
-					CleanupInterval: time.Hour,
-				},
-			)},
-			ListID: listID,
-		},
-	}
+	handler := watchlist.New(apiKey, &imdb.Client{
+		HTTPClient: &http.Client{Transport: httpclient.NewRoundTripper(
+			httpclient.WithCache{
+				DefaultExpiry:   15 * time.Minute,
+				CleanupInterval: time.Hour,
+			},
+		)},
+		ListID: listID,
+	})
 
 	server := &http.Server{Addr: ":8080", Handler: handler.MakeRouter()}
-	prometheus.MustRegister(&handler)
+	prometheus.MustRegister(handler)
 
 	go func() {
 		if err2 := server.ListenAndServe(); !errors.Is(err2, http.ErrServerClosed) {

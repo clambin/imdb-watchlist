@@ -3,112 +3,96 @@ package imdb_test
 import (
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-type TestCase struct {
-	name       string
-	fail       bool
-	response   string
-	validTypes []string
-	output     []string
-	pass       bool
-}
-
-var GetTestCases = []TestCase{
-	{
-		name:       "tvSeries",
-		fail:       false,
-		response:   ReferenceOutput,
-		validTypes: []string{"tvSeries"},
-		output:     []string{"tt2"},
-		pass:       true,
-	},
-	{
-		name:       "movie",
-		fail:       false,
-		response:   ReferenceOutput,
-		validTypes: []string{"movie"},
-		output:     []string{"tt1"},
-		pass:       true,
-	},
-	{
-		name:       "combined",
-		fail:       false,
-		response:   ReferenceOutput,
-		validTypes: []string{"movie", "tvSpecial"},
-		output:     []string{"tt1", "tt3"},
-		pass:       true,
-	},
-	{
-		name:       "invalid",
-		fail:       false,
-		response:   InvalidOutput,
-		validTypes: []string{"movie", "tvSpecial"},
-		pass:       false,
-	},
-	{
-		name:       "header missing",
-		fail:       false,
-		response:   HeaderMissing,
-		validTypes: []string{"movie", "tvSpecial"},
-		pass:       false,
-	},
-	{
-		name:       "empty",
-		fail:       false,
-		response:   ``,
-		validTypes: []string{"movie", "tvSpecial"},
-		pass:       false,
-	},
-	{
-		name:       "error",
-		fail:       true,
-		response:   ``,
-		validTypes: []string{"movie", "tvSpecial"},
-		pass:       false,
-	},
-}
-
 func TestGetByTypes(t *testing.T) {
-	handler := Handler{}
-	s := httptest.NewServer(http.HandlerFunc(handler.Handle))
-
-	c := imdb.Client{
-		HTTPClient: http.DefaultClient,
-		URL:        s.URL,
+	tests := []struct {
+		name       string
+		validTypes []string
+		fail       bool
+		response   string
+		pass       bool
+		output     []imdb.Entry
+	}{
+		{
+			name:       "tvSeries",
+			validTypes: []string{"tvSeries"},
+			fail:       false,
+			response:   ReferenceOutput,
+			pass:       true,
+			output:     []imdb.Entry{{IMDBId: "tt2", Type: "tvSeries", Title: "A TV Series"}},
+		},
+		{
+			name:       "movie",
+			validTypes: []string{"movie"},
+			fail:       false,
+			response:   ReferenceOutput,
+			pass:       true,
+			output:     []imdb.Entry{{IMDBId: "tt1", Type: "movie", Title: "A Movie"}},
+		},
+		{
+			name:       "combined",
+			validTypes: []string{"movie", "tvSpecial"},
+			fail:       false,
+			response:   ReferenceOutput,
+			pass:       true,
+			output:     []imdb.Entry{{IMDBId: "tt1", Type: "movie", Title: "A Movie"}, {IMDBId: "tt3", Type: "tvSpecial", Title: "A TV Special"}},
+		},
+		{
+			name:       "invalid",
+			validTypes: []string{"movie", "tvSpecial"},
+			fail:       false,
+			response:   InvalidOutput,
+			pass:       false,
+		},
+		{
+			name:       "header missing",
+			validTypes: []string{"movie", "tvSpecial"},
+			fail:       false,
+			response:   HeaderMissing,
+			pass:       false,
+		},
+		{
+			name:       "empty",
+			validTypes: []string{"movie", "tvSpecial"},
+			fail:       false,
+			response:   ``,
+			pass:       false,
+		},
+		{
+			name:       "error",
+			validTypes: []string{"movie", "tvSpecial"},
+			fail:       true,
+			pass:       false,
+		},
 	}
 
-	for _, test := range GetTestCases {
-
-		handler.Fail = test.fail
-		handler.Response = test.response
-
-		entries, err := c.GetByTypes(test.validTypes...)
-
-		if test.pass {
-			assert.NoError(t, err, test.name)
-			for _, id := range test.output {
-				found := func(list []imdb.Entry) bool {
-					for _, entry := range list {
-						if entry.IMDBId == id {
-							return true
-						}
-					}
-					return false
-				}(entries)
-				assert.True(t, found, test.name)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			handler := Handler{
+				Fail:     tt.fail,
+				Response: tt.response,
 			}
-		} else {
-			assert.Error(t, err, test.name)
-		}
-	}
+			s := httptest.NewServer(http.HandlerFunc(handler.Handle))
+			defer s.Close()
 
-	s.Close()
-	_, err := c.GetByTypes("movie", "tvSpecial")
-	assert.Error(t, err)
+			c := imdb.Client{HTTPClient: http.DefaultClient, URL: s.URL}
+
+			entries, err := c.ReadByTypes(tt.validTypes...)
+
+			if !tt.pass {
+				assert.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err, tt.name)
+			assert.Equal(t, tt.output, entries)
+		})
+	}
 }
 
 // Handler emulates an IMDB watchlist

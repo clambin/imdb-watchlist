@@ -6,7 +6,7 @@ import (
 )
 
 func (s *Server) getSeries() ([]Entry, error) {
-	entries, err := s.Reader.GetByTypes("tvSeries", "tvMiniSeries")
+	entries, err := s.Reader.ReadByTypes("tvSeries", "tvMiniSeries")
 	if err != nil {
 		return nil, err
 	}

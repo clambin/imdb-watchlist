@@ -8,22 +8,12 @@ import (
 	"net/http"
 )
 
-// Reader interface fetches an IMDB watchlist and returns the entries that match validTypes
-//
-//go:generate mockery --name Reader
-type Reader interface {
-	GetAll() (entries []Entry, err error)
-	GetByTypes(validTypes ...string) (entries []Entry, err error)
-}
-
 // Client fetches an IMDB watchlist and returns the entries that match a set of types
 type Client struct {
 	HTTPClient *http.Client
 	ListID     string
 	URL        string
 }
-
-var _ Reader = &Client{}
 
 // Entry is an entry in an IMDB watchlist
 type Entry struct {
@@ -32,8 +22,23 @@ type Entry struct {
 	Title  string
 }
 
-// GetAll queries an IMDB watchlist and returns all entries
-func (client *Client) GetAll() ([]Entry, error) {
+// ReadByTypes queries an IMDB watchlist and returns the entries that match validTypes. If no validTtypes are provided,
+// all watchlist entries are returned.
+func (client *Client) ReadByTypes(validTypes ...string) ([]Entry, error) {
+	allEntries, err := client.getWatchlist()
+	if err != nil {
+		return nil, err
+	}
+	var entries []Entry
+	for _, entry := range allEntries {
+		if checkType(entry.Type, validTypes...) {
+			entries = append(entries, entry)
+		}
+	}
+	return entries, err
+}
+
+func (client *Client) getWatchlist() ([]Entry, error) {
 	url := "https://www.imdb.com"
 	if client.URL != "" {
 		url = client.URL
@@ -57,21 +62,7 @@ func (client *Client) GetAll() ([]Entry, error) {
 	return parseList(resp.Body)
 }
 
-// GetByTypes queries an IMDB watchlist and returns the entries that match validTypes
-func (client *Client) GetByTypes(validTypes ...string) ([]Entry, error) {
-	allEntries, err := client.GetAll()
-	var entries []Entry
-	if err == nil {
-		for _, entry := range allEntries {
-			if checkType(entry.Type, validTypes...) {
-				entries = append(entries, entry)
-			}
-		}
-	}
-	return entries, err
-}
-
-func parseList(body io.ReadCloser) ([]Entry, error) {
+func parseList(body io.Reader) ([]Entry, error) {
 	reader := csv.NewReader(body)
 
 	columns, err := reader.Read()
