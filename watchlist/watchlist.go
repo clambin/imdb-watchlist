@@ -8,6 +8,7 @@ import (
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-http-utils/headers"
 	"github.com/prometheus/client_golang/prometheus"
+	"golang.org/x/exp/slog"
 	"net/http"
 )
 
@@ -43,7 +44,7 @@ func New(apiKey string, reader Reader) *Server {
 func (s *Server) MakeRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Use(chiMiddleware.Logger)
+	r.Use(chiMiddleware.RequestLogger(&Logger{logger: slog.Default()}))
 	r.Use(Authenticate(s.APIKey))
 	r.Use(s.metrics.Handle)
 
