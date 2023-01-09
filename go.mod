@@ -4,13 +4,13 @@ go 1.18
 
 require (
 	github.com/clambin/go-common/httpclient v0.3.2
-	github.com/clambin/go-common/httpserver v0.4.0
+	github.com/clambin/go-common/httpserver v0.4.1
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/prometheus/client_golang v1.14.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xonvanetta/shutdown v0.0.3
-	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30
+	golang.org/x/exp v0.0.0-20230105202349-8879d0199aa3
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )
 
