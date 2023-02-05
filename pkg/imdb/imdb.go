@@ -1,7 +1,7 @@
 package imdb
 
 import (
-	"encoding/csv"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -24,8 +24,8 @@ type Entry struct {
 
 // ReadByTypes queries an IMDB watchlist and returns the entries that match validTypes. If no validTtypes are provided,
 // all watchlist entries are returned.
-func (client *Client) ReadByTypes(validTypes ...string) ([]Entry, error) {
-	allEntries, err := client.getWatchlist()
+func (c *Client) ReadByTypes(validTypes ...string) ([]Entry, error) {
+	allEntries, err := c.getWatchlist()
 	if err != nil {
 		return nil, err
 	}
@@ -38,14 +38,14 @@ func (client *Client) ReadByTypes(validTypes ...string) ([]Entry, error) {
 	return entries, err
 }
 
-func (client *Client) getWatchlist() ([]Entry, error) {
+func (c *Client) getWatchlist() ([]Entry, error) {
 	url := "https://www.imdb.com"
-	if client.URL != "" {
-		url = client.URL
+	if c.URL != "" {
+		url = c.URL
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, url+"/list/"+client.ListID+"/export", nil)
-	resp, err := client.HTTPClient.Do(req)
+	req, _ := http.NewRequest(http.MethodGet, url+"/list/"+c.ListID+"/export", nil)
+	resp, err := c.HTTPClient.Do(req)
 
 	if err != nil {
 		return nil, err
@@ -55,69 +55,16 @@ func (client *Client) getWatchlist() ([]Entry, error) {
 		_ = resp.Body.Close()
 	}()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read: %w", err)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
 	}
 
-	return parseList(resp.Body)
-}
-
-func parseList(body io.Reader) ([]Entry, error) {
-	reader := csv.NewReader(body)
-
-	columns, err := reader.Read()
-	if err != nil {
-		return nil, fmt.Errorf("csv: %w", err)
-	}
-
-	var indices map[string]int
-	indices, err = getColumnIndices(columns)
-	if err != nil {
-		return nil, err
-	}
-
-	return parseEntries(reader, indices)
-}
-
-func getColumnIndices(columns []string) (indices map[string]int, err error) {
-	var mandatory = map[string]bool{
-		"Const":      false,
-		"Title":      false,
-		"Title Type": false,
-	}
-
-	indices = make(map[string]int)
-	for index, column := range columns {
-		indices[column] = index
-		mandatory[column] = true
-	}
-
-	for column, found := range mandatory {
-		if !found {
-			err = fmt.Errorf("imdb: mandatory field '%s' missing", column)
-			break
-		}
-	}
-
-	return
-}
-
-func parseEntries(reader *csv.Reader, indices map[string]int) (entries []Entry, err error) {
-	var fields []string
-	for err == nil {
-		if fields, err = reader.Read(); err == nil {
-			entries = append(entries, Entry{
-				IMDBId: fields[indices["Const"]],
-				Title:  fields[indices["Title"]],
-				Type:   fields[indices["Title Type"]],
-			})
-		}
-	}
-
-	if err == io.EOF {
-		err = nil
-	}
-	return
+	return parseList(bytes.NewBuffer(body))
 }
 
 func checkType(entryType string, validTypes ...string) bool {

@@ -43,27 +43,6 @@ func TestGetByTypes(t *testing.T) {
 			output:     []imdb.Entry{{IMDBId: "tt1", Type: "movie", Title: "A Movie"}, {IMDBId: "tt3", Type: "tvSpecial", Title: "A TV Special"}},
 		},
 		{
-			name:       "invalid",
-			validTypes: []string{"movie", "tvSpecial"},
-			fail:       false,
-			response:   InvalidOutput,
-			pass:       false,
-		},
-		{
-			name:       "header missing",
-			validTypes: []string{"movie", "tvSpecial"},
-			fail:       false,
-			response:   HeaderMissing,
-			pass:       false,
-		},
-		{
-			name:       "empty",
-			validTypes: []string{"movie", "tvSpecial"},
-			fail:       false,
-			response:   ``,
-			pass:       false,
-		},
-		{
 			name:       "error",
 			validTypes: []string{"movie", "tvSpecial"},
 			fail:       true,
@@ -95,6 +74,14 @@ func TestGetByTypes(t *testing.T) {
 	}
 }
 
+func TestClient_ReadByTypes_Error(t *testing.T) {
+	s := httptest.NewServer(http.HandlerFunc(nil))
+	s.Close()
+	c := imdb.Client{HTTPClient: http.DefaultClient, URL: s.URL}
+	_, err := c.ReadByTypes()
+	assert.Error(t, err)
+}
+
 // Handler emulates an IMDB watchlist
 type Handler struct {
 	Fail     bool   // Fail any incoming call
@@ -116,18 +103,4 @@ const ReferenceOutput = `Position,Const,Created,Modified,Description,Title,URL,T
 2,tt2,,,,A TV Series,,tvSeries,,,,,,,
 3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
 4,tt4,,,,A TV miniseries,,tvMiniSeries,,,,,,,
-`
-
-// InvalidOutput is a syntactically invalid response
-const InvalidOutput = `Position,Const,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
-1,tt1,,,,A Movie,,movie,,,,,,,
-2,tt2,,,,A TV Series,,tvSeries,,,,,,,,
-3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
-`
-
-// HeaderMissing misses a mandatory column ("Const")
-const HeaderMissing = `Position,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
-1,,,,A Movie,,movie,,,,,,,
-2,,,,A TV Series,,tvSeries,,,,,,,,
-3,,,,A TV Special,,tvSpecial,,,,,,,
 `

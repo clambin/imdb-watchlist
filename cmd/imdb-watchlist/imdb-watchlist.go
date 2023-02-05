@@ -37,8 +37,7 @@ func main() {
 	a.Flag("list", "IMDB List ID").Required().StringVar(&listID)
 	a.Flag("apikey", "API Key").StringVar(&apiKey)
 
-	_, err := a.Parse(os.Args[1:])
-	if err != nil {
+	if _, err := a.Parse(os.Args[1:]); err != nil {
 		a.Usage(os.Args[1:])
 		os.Exit(2)
 	}
@@ -71,9 +70,9 @@ func main() {
 	prometheus.MustRegister(handler)
 
 	go func() {
-		if err2 := server.ListenAndServe(); !errors.Is(err2, http.ErrServerClosed) {
-			slog.Error("failed to start server", err2)
-			panic(err2)
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("failed to start server", err)
+			panic(err)
 		}
 	}()
 
