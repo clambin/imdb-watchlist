@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/clambin/go-common/httpclient v0.3.3
-	github.com/clambin/go-common/httpserver v0.4.1
+	github.com/clambin/go-common/httpserver v0.4.2
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/prometheus/client_golang v1.14.0
