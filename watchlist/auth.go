@@ -8,7 +8,7 @@ func Authenticate(apiKey string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			var authenticated bool
-			for _, key := range req.Header[APIKeyHeader] {
+			for _, key := range req.Header.Values(APIKeyHeader) {
 				if key == apiKey {
 					authenticated = true
 					break

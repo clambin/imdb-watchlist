@@ -71,7 +71,7 @@ func main() {
 
 	go func() {
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start server", err)
+			slog.Error("failed to start server", "err", err)
 			panic(err)
 		}
 	}()
@@ -86,6 +86,6 @@ func main() {
 func runPrometheusServer(port int) {
 	http.Handle("/metrics", promhttp.Handler())
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("failed to start Prometheus listener", err)
+		slog.Error("failed to start Prometheus listener", "err", err)
 	}
 }
