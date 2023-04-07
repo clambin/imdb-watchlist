@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/clambin/go-common/httpclient"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/clambin/imdb-watchlist/version"
@@ -22,8 +21,8 @@ import (
 func main() {
 	var (
 		debug          bool
-		port           int
-		prometheusPort int
+		addr           string
+		prometheusAddr string
 		listID         string
 		apiKey         string
 	)
@@ -33,8 +32,8 @@ func main() {
 	a.HelpFlag.Short('h')
 	a.VersionFlag.Short('v')
 	a.Flag("debug", "Log debug messages").BoolVar(&debug)
-	a.Flag("port", "API listener port").Default("8080").IntVar(&port)
-	a.Flag("prometheus", "Prometheus listener port").Default("9090").IntVar(&prometheusPort)
+	a.Flag("addr", "API listener address").Default(":8080").StringVar(&addr)
+	a.Flag("prometheus", "Prometheus listener address").Default(":9090").StringVar(&prometheusAddr)
 	a.Flag("list", "IMDB List ID").Required().StringVar(&listID)
 	a.Flag("apikey", "API Key").StringVar(&apiKey)
 
@@ -66,29 +65,26 @@ func main() {
 		)},
 		ListID: listID,
 	})
-
-	server := &http.Server{Addr: ":8080", Handler: handler.MakeRouter()}
 	prometheus.MustRegister(handler)
 
 	go func() {
+		server := &http.Server{Addr: addr, Handler: handler.MakeRouter()}
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start server", "err", err)
 			panic(err)
 		}
 	}()
 
-	go runPrometheusServer(prometheusPort)
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		if err := http.ListenAndServe(prometheusAddr, nil); !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("failed to start Prometheus listener", "err", err)
+		}
+	}()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-signals
 
 	slog.Info("imdb-watchlist stopped")
-}
-
-func runPrometheusServer(port int) {
-	http.Handle("/metrics", promhttp.Handler())
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("failed to start Prometheus listener", "err", err)
-	}
 }
