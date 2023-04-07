@@ -9,7 +9,6 @@ require (
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/prometheus/client_golang v1.14.0
 	github.com/stretchr/testify v1.8.2
-	github.com/xonvanetta/shutdown v0.0.3
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 )

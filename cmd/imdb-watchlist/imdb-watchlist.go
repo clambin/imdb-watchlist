@@ -9,12 +9,13 @@ import (
 	"github.com/clambin/imdb-watchlist/watchlist"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/xonvanetta/shutdown/pkg/shutdown"
 	"golang.org/x/exp/slog"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -78,7 +79,9 @@ func main() {
 
 	go runPrometheusServer(prometheusPort)
 
-	<-shutdown.Chan()
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-signals
 
 	slog.Info("imdb-watchlist stopped")
 }
