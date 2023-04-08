@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"github.com/clambin/go-common/httpclient"
@@ -72,9 +73,9 @@ func main() {
 		}
 	}()
 
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-signals
+	ctx, done := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer done()
+	<-ctx.Done()
 
 	slog.Info("imdb-watchlist stopped")
 }
