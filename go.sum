@@ -6,8 +6,8 @@ github.com/clambin/go-common/cache v0.1.1 h1:aX6v3sYaaQy8WIwP7II1UTyH2z7/cRfl40/
 github.com/clambin/go-common/cache v0.1.1/go.mod h1:7eT02BszXnBRDG0MIJ5penXQeEXRQRfmC0hNCmZqMCU=
 github.com/clambin/go-common/httpclient v0.3.3 h1:M3L3HsPH8Bb5m8NOIvIlhZ75Cg9Hx3DjHuXIxb6Z6PY=
 github.com/clambin/go-common/httpclient v0.3.3/go.mod h1:w0RUxYpmTu+TiWx4F+pfeYhOcKaHxI/Q9OrAlIaz3Lk=
-github.com/clambin/go-common/httpserver v0.4.2 h1:Q19yoJ5QaoUpBQ/27rnOpdqXcMjhoEOjpsZIIhpHhgc=
-github.com/clambin/go-common/httpserver v0.4.2/go.mod h1:f7mUBJ2XhOl36pPxLnIWr+An4zMoKfdr9DFGJVAdeGk=
+github.com/clambin/go-common/httpserver v0.5.0 h1:t24hD6l7sGdK+8N4TDH9i7opNBZHmO/1oI0kWy9R47s=
+github.com/clambin/go-common/httpserver v0.5.0/go.mod h1:xrvqa7N/Nn2xojPZzWlHui6PTcEybQ8uh+YGHuB38+4=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
