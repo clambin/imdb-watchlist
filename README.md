@@ -16,17 +16,18 @@ Binaries are available on the [release](https://github.com/clambin/imdb-watchlis
 ### Command-line options
 
 ```
-usage: imdb-watchlist --list=LIST [<flags>]
+Usage: imdb-watchlist --list=LIST [<flags>]
 
-imdb-watchlist
-
-Flags:
-  -h, --help           Show context-sensitive help (also try --help-long and --help-man).
-  -v, --version        Show application version.
-      --debug          Log debug messages
-      --port=8080      API listener port
-      --list=LIST      IMDB Watchlist ID
-      --apikey=APIKEY  API Key
+  -addr string
+        Server address (default ":8080")
+  -apikey string
+        APIKey
+  -debug
+        Log debug messages
+  -list string
+        IMDB List ID (required)
+  -prometheus string
+        Prometheus metrics address (default ":9090")
 
 ```
 
