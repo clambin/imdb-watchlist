@@ -59,7 +59,7 @@ func TestGetByTypes(t *testing.T) {
 			s := httptest.NewServer(http.HandlerFunc(handler.Handle))
 			defer s.Close()
 
-			c := imdb.Client{HTTPClient: http.DefaultClient, URL: s.URL}
+			c := imdb.Fetcher{HTTPClient: http.DefaultClient, URL: s.URL}
 
 			entries, err := c.ReadByTypes(tt.validTypes...)
 
@@ -77,7 +77,7 @@ func TestGetByTypes(t *testing.T) {
 func TestClient_ReadByTypes_Error(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(nil))
 	s.Close()
-	c := imdb.Client{HTTPClient: http.DefaultClient, URL: s.URL}
+	c := imdb.Fetcher{HTTPClient: http.DefaultClient, URL: s.URL}
 	_, err := c.ReadByTypes()
 	assert.Error(t, err)
 }

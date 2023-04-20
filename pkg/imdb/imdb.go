@@ -8,8 +8,8 @@ import (
 	"net/http"
 )
 
-// Client fetches an IMDB watchlist and returns the entries that match a set of types
-type Client struct {
+// Fetcher fetches an IMDB watchlist and returns the entries that match a set of types
+type Fetcher struct {
 	HTTPClient *http.Client
 	ListID     string
 	URL        string
@@ -24,8 +24,8 @@ type Entry struct {
 
 // ReadByTypes queries an IMDB watchlist and returns the entries that match validTypes. If no validTtypes are provided,
 // all watchlist entries are returned.
-func (c *Client) ReadByTypes(validTypes ...string) ([]Entry, error) {
-	allEntries, err := c.getWatchlist()
+func (f Fetcher) ReadByTypes(validTypes ...string) ([]Entry, error) {
+	allEntries, err := f.getWatchlist()
 	if err != nil {
 		return nil, err
 	}
@@ -38,14 +38,14 @@ func (c *Client) ReadByTypes(validTypes ...string) ([]Entry, error) {
 	return entries, err
 }
 
-func (c *Client) getWatchlist() ([]Entry, error) {
+func (f Fetcher) getWatchlist() ([]Entry, error) {
 	url := "https://www.imdb.com"
-	if c.URL != "" {
-		url = c.URL
+	if f.URL != "" {
+		url = f.URL
 	}
 
-	req, _ := http.NewRequest(http.MethodGet, url+"/list/"+c.ListID+"/export", nil)
-	resp, err := c.HTTPClient.Do(req)
+	req, _ := http.NewRequest(http.MethodGet, url+"/list/"+f.ListID+"/export", nil)
+	resp, err := f.HTTPClient.Do(req)
 
 	if err != nil {
 		return nil, err

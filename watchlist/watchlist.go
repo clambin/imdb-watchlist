@@ -5,7 +5,6 @@ import (
 	"github.com/clambin/go-common/httpserver/middleware"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/go-chi/chi/v5"
-	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-http-utils/headers"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/slog"
@@ -27,7 +26,7 @@ type Reader interface {
 	ReadByTypes(validTypes ...string) (entries []imdb.Entry, err error)
 }
 
-var _ Reader = &imdb.Client{}
+var _ Reader = &imdb.Fetcher{}
 
 func New(apiKey string, reader Reader) *Server {
 	s := Server{
@@ -44,7 +43,7 @@ func New(apiKey string, reader Reader) *Server {
 func (s *Server) MakeRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Use(chiMiddleware.RequestLogger(&Logger{logger: slog.Default()}))
+	r.Use(middleware.Logger(slog.Default()))
 	r.Use(Authenticate(s.APIKey))
 	r.Use(s.metrics.Handle)
 

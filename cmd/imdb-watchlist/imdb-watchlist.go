@@ -47,7 +47,7 @@ func main() {
 		slog.Info("no API Key provided. generating a new one", "apikey", *apiKey)
 	}
 
-	handler := watchlist.New(*apiKey, &imdb.Client{
+	handler := watchlist.New(*apiKey, &imdb.Fetcher{
 		HTTPClient: &http.Client{Transport: httpclient.NewRoundTripper(
 			httpclient.WithCache{
 				DefaultExpiry:   15 * time.Minute,
