@@ -48,12 +48,9 @@ func main() {
 	}
 
 	handler := watchlist.New(*apiKey, &imdb.Fetcher{
-		HTTPClient: &http.Client{Transport: httpclient.NewRoundTripper(
-			httpclient.WithCache{
-				DefaultExpiry:   15 * time.Minute,
-				CleanupInterval: time.Hour,
-			},
-		)},
+		HTTPClient: &http.Client{
+			Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.CacheTable{}, 15*time.Minute, time.Hour)),
+		},
 		ListID: *listID,
 	})
 	prometheus.MustRegister(handler)
