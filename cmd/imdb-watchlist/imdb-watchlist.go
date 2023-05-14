@@ -33,7 +33,7 @@ func main() {
 	if *debug {
 		opts.Level = slog.LevelDebug
 	}
-	slog.SetDefault(slog.New(opts.NewTextHandler(os.Stderr)))
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &opts)))
 
 	slog.Info("imdb-watchlist starting", "version", version.BuildVersion)
 
