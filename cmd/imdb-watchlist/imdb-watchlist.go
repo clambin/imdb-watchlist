@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"github.com/clambin/go-common/httpclient"
+	"github.com/clambin/go-common/taskmanager"
+	"github.com/clambin/go-common/taskmanager/httpserver"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/clambin/imdb-watchlist/version"
 	"github.com/clambin/imdb-watchlist/watchlist"
@@ -55,24 +56,20 @@ func main() {
 	})
 	prometheus.MustRegister(handler)
 
-	go func() {
-		server := &http.Server{Addr: *addr, Handler: handler.MakeRouter()}
-		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start server", "err", err)
-			panic(err)
-		}
-	}()
+	prom := http.NewServeMux()
+	prom.Handle("/metrics", promhttp.Handler())
 
-	go func() {
-		http.Handle("/metrics", promhttp.Handler())
-		if err := http.ListenAndServe(*prometheusAddr, nil); !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start Prometheus listener", "err", err)
-		}
-	}()
+	tm := taskmanager.New(
+		httpserver.New(*addr, handler.MakeRouter()),
+		httpserver.New(*prometheusAddr, prom),
+	)
 
 	ctx, done := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer done()
-	<-ctx.Done()
+	if err := tm.Run(ctx); err != nil {
+		slog.Error("failed to start", "err", err)
+		os.Exit(1)
+	}
 
 	slog.Info("imdb-watchlist stopped")
 }
