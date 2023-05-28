@@ -10,6 +10,8 @@ github.com/clambin/go-common/httpserver v0.5.0 h1:t24hD6l7sGdK+8N4TDH9i7opNBZHmO
 github.com/clambin/go-common/httpserver v0.5.0/go.mod h1:xrvqa7N/Nn2xojPZzWlHui6PTcEybQ8uh+YGHuB38+4=
 github.com/clambin/go-common/taskmanager v0.1.0 h1:pbkNrI/QWfKcdK1hb4ozrUKXYcuoy6mnDmuYErc6H7E=
 github.com/clambin/go-common/taskmanager v0.1.0/go.mod h1:CkY5JjhU4bv6gpIxxWHKWI982euHpkQDCnqjzraPo0E=
+github.com/clambin/go-common/taskmanager v0.2.0 h1:kI2sXqunGV3zx1bEqqB3fl31CvzUam6YhnRVlml4Io0=
+github.com/clambin/go-common/taskmanager v0.2.0/go.mod h1:BLq8MGQZVpj16USB4pHtikOVh4cDgnSjPIhTZyosAgM=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

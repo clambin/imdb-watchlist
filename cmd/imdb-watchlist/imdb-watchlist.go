@@ -6,11 +6,11 @@ import (
 	"github.com/clambin/go-common/httpclient"
 	"github.com/clambin/go-common/taskmanager"
 	"github.com/clambin/go-common/taskmanager/httpserver"
+	promserver "github.com/clambin/go-common/taskmanager/prometheus"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/clambin/imdb-watchlist/version"
 	"github.com/clambin/imdb-watchlist/watchlist"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/exp/slog"
 	"net/http"
 	"os"
@@ -56,12 +56,9 @@ func main() {
 	})
 	prometheus.MustRegister(handler)
 
-	prom := http.NewServeMux()
-	prom.Handle("/metrics", promhttp.Handler())
-
 	tm := taskmanager.New(
 		httpserver.New(*addr, handler.MakeRouter()),
-		httpserver.New(*prometheusAddr, prom),
+		promserver.New(promserver.WithAddr(*prometheusAddr)),
 	)
 
 	ctx, done := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
