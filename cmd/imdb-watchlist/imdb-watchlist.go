@@ -50,7 +50,7 @@ func main() {
 
 	handler := watchlist.New(*apiKey, &imdb.Fetcher{
 		HTTPClient: &http.Client{
-			Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.CacheTable{}, 15*time.Minute, time.Hour)),
+			Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.DefaultCacheTable, 15*time.Minute, time.Hour)),
 		},
 		ListID: *listID,
 	})
