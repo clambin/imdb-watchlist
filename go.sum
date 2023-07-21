@@ -6,8 +6,8 @@ github.com/clambin/go-common/cache v0.2.2 h1:Tjb+71+/2ckrZlSbLDYgCEpkS2HwkTRkQ/1
 github.com/clambin/go-common/cache v0.2.2/go.mod h1:6DMcBIPTGckXMNQTGfdEMiLAbKqIOWzgk5KNyiJK54M=
 github.com/clambin/go-common/httpclient v0.5.1 h1:KQpqm5TnD2zzXJKCH4X1AuL7yvJTKgU1PDWKvUExeVY=
 github.com/clambin/go-common/httpclient v0.5.1/go.mod h1:77y+6LzAKdenkU+vwQFdNKyxs2HhUXEiqYwzS7Q9FKI=
-github.com/clambin/go-common/httpserver v0.8.0 h1:5ZrXo3fgjXEmOavIyz/bMKzwgeRQhFb30OWPWAcNX6I=
-github.com/clambin/go-common/httpserver v0.8.0/go.mod h1:b5cHmhWknlw4IJhoVIKgl0ZUH+XT9K2Y2sK+ob2bPto=
+github.com/clambin/go-common/httpserver v0.9.0 h1:AxLZ8ARbqNsVw36fJEh1ALYZRfFEUPXoRKcl7PI9qng=
+github.com/clambin/go-common/httpserver v0.9.0/go.mod h1:b5cHmhWknlw4IJhoVIKgl0ZUH+XT9K2Y2sK+ob2bPto=
 github.com/clambin/go-common/taskmanager v0.2.1 h1:zkh6hr4RqRHrJHIeBTRClAw7788IMHd//YbbbxCpUes=
 github.com/clambin/go-common/taskmanager v0.2.1/go.mod h1:BLq8MGQZVpj16USB4pHtikOVh4cDgnSjPIhTZyosAgM=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

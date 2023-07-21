@@ -8,7 +8,6 @@ import (
 	"github.com/clambin/go-common/taskmanager/httpserver"
 	promserver "github.com/clambin/go-common/taskmanager/prometheus"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/clambin/imdb-watchlist/version"
 	"github.com/clambin/imdb-watchlist/watchlist"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/slog"
@@ -20,6 +19,9 @@ import (
 )
 
 var (
+	// BuildVersion contains the release number
+	BuildVersion = "change-me"
+
 	debug          = flag.Bool("debug", false, "Log debug messages")
 	addr           = flag.String("addr", ":8080", "Server address")
 	prometheusAddr = flag.String("prometheus", ":9090", "Prometheus metrics address")
@@ -36,7 +38,7 @@ func main() {
 	}
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &opts)))
 
-	slog.Info("imdb-watchlist starting", "version", version.BuildVersion)
+	slog.Info("imdb-watchlist starting", "version", BuildVersion)
 
 	if *listID == "" {
 		slog.Error("no IMDB List ID provided. Aborting.")
