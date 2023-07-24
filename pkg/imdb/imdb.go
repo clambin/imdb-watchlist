@@ -1,10 +1,7 @@
 package imdb
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -55,16 +52,11 @@ func (f Fetcher) getWatchlist() ([]Entry, error) {
 		_ = resp.Body.Close()
 	}()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("read: %w", err)
-	}
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
 	}
 
-	return parseList(bytes.NewBuffer(body))
+	return parseList(resp.Body)
 }
 
 func checkType(entryType string, validTypes ...string) bool {
