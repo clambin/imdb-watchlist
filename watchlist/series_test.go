@@ -5,7 +5,6 @@ import (
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/clambin/imdb-watchlist/watchlist"
 	"github.com/clambin/imdb-watchlist/watchlist/mocks"
-	"github.com/go-http-utils/headers"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -61,9 +60,8 @@ func TestServer_Series(t *testing.T) {
 			}
 
 			assert.Equal(t, http.StatusOK, w.Code)
-			assert.Equal(t, "application/json", w.Header().Get(headers.ContentType))
+			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 			assert.Equal(t, tt.body, w.Body.String())
 		})
 	}
-
 }

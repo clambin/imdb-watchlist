@@ -7,7 +7,6 @@ require (
 	github.com/clambin/go-common/httpserver v0.11.0
 	github.com/clambin/go-common/taskmanager v0.2.1
 	github.com/go-chi/chi/v5 v5.0.10
-	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/prometheus/client_golang v1.16.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20230728194245-b0cb94b80691

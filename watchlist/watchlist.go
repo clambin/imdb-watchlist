@@ -5,7 +5,6 @@ import (
 	"github.com/clambin/go-common/httpserver/middleware"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-http-utils/headers"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/slog"
 	"net/http"
@@ -61,7 +60,7 @@ func (s *Server) Series(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	w.Header().Set(headers.ContentType, "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(entries); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,7 +68,7 @@ func (s *Server) Series(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (s *Server) Empty(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set(headers.ContentType, "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(`[]`))
 }
 
