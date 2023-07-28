@@ -2,7 +2,6 @@ package watchlist
 
 import (
 	"math/rand"
-	"time"
 )
 
 const (
@@ -12,7 +11,6 @@ const (
 
 // GenerateKey generates a Sonarr API Key
 func GenerateKey() string {
-	rand.Seed(time.Now().UnixNano())
 	output := make([]byte, size)
 	for i := 0; i < size; i++ {
 		output[i] = characters[rand.Intn(len(characters))]

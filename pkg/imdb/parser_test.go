@@ -3,16 +3,15 @@ package imdb
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestParseList(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		pass     bool
-		expected []Entry
+		name    string
+		input   string
+		want    []Entry
+		wantErr assert.ErrorAssertionFunc
 	}{
 		{
 			name: "valid",
@@ -22,8 +21,8 @@ func TestParseList(t *testing.T) {
 3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
 4,tt4,,,,A TV miniseries,,tvMiniSeries,,,,,,,
 `,
-			pass: true,
-			expected: []Entry{
+			wantErr: assert.NoError,
+			want: []Entry{
 				{IMDBId: "tt1", Type: "movie", Title: "A Movie"},
 				{IMDBId: "tt2", Type: "tvSeries", Title: "A TV Series"},
 				{IMDBId: "tt3", Type: "tvSpecial", Title: "A TV Special"},
@@ -34,13 +33,13 @@ func TestParseList(t *testing.T) {
 			name: "empty",
 			input: `Position,Const,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
 `,
-			pass:     true,
-			expected: nil,
+			wantErr: assert.NoError,
+			want:    nil,
 		},
 		{
-			name:  "no input",
-			input: ``,
-			pass:  false,
+			name:    "no input",
+			input:   ``,
+			wantErr: assert.Error,
 		},
 		{
 			name: "missing header",
@@ -49,7 +48,7 @@ func TestParseList(t *testing.T) {
 3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
 4,tt4,,,,A TV miniseries,,tvMiniSeries,,,,,,,
 `,
-			pass: false,
+			wantErr: assert.Error,
 		},
 		{
 			name: "invalid",
@@ -58,7 +57,7 @@ func TestParseList(t *testing.T) {
 2,tt2,,,,A TV Series,,tvSeries,,,,,,,,
 3,tt3,,,,A TV Special,,tvSpecial,,,,,,,
 `,
-			pass: false,
+			wantErr: assert.Error,
 		},
 		{
 			name: "invalid header",
@@ -67,7 +66,7 @@ func TestParseList(t *testing.T) {
 2,,,,A TV Series,,tvSeries,,,,,,,,
 3,,,,A TV Special,,tvSpecial,,,,,,,
 `,
-			pass: false,
+			wantErr: assert.Error,
 		},
 	}
 
@@ -76,13 +75,10 @@ func TestParseList(t *testing.T) {
 			r := bytes.NewBufferString(tt.input)
 			entries, err := parseList(r)
 
-			if !tt.pass {
-				assert.Error(t, err)
-				return
+			tt.wantErr(t, err)
+			if err == nil {
+				assert.Equal(t, tt.want, entries)
 			}
-
-			require.NoError(t, err)
-			assert.Equal(t, tt.expected, entries)
 		})
 	}
 }
