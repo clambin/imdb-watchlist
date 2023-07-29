@@ -53,7 +53,7 @@ func parseEntries(reader *csv.Reader, indices map[string]int) (entries []Entry, 
 			entries = append(entries, Entry{
 				IMDBId: fields[indices["Const"]],
 				Title:  fields[indices["Title"]],
-				Type:   fields[indices["Title Type"]],
+				Type:   EntryType(fields[indices["Title Type"]]),
 			})
 		}
 	}

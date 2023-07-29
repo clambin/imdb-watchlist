@@ -12,7 +12,7 @@ import (
 func TestGetByTypes(t *testing.T) {
 	tests := []struct {
 		name       string
-		validTypes []string
+		validTypes []imdb.EntryType
 		fail       bool
 		response   string
 		pass       bool
@@ -20,7 +20,7 @@ func TestGetByTypes(t *testing.T) {
 	}{
 		{
 			name:       "tvSeries",
-			validTypes: []string{"tvSeries"},
+			validTypes: []imdb.EntryType{imdb.TVSeries},
 			fail:       false,
 			response:   ReferenceOutput,
 			pass:       true,
@@ -28,7 +28,7 @@ func TestGetByTypes(t *testing.T) {
 		},
 		{
 			name:       "movie",
-			validTypes: []string{"movie"},
+			validTypes: []imdb.EntryType{imdb.Movie},
 			fail:       false,
 			response:   ReferenceOutput,
 			pass:       true,
@@ -36,7 +36,7 @@ func TestGetByTypes(t *testing.T) {
 		},
 		{
 			name:       "combined",
-			validTypes: []string{"movie", "tvSpecial"},
+			validTypes: []imdb.EntryType{imdb.Movie, imdb.TVSpecial},
 			fail:       false,
 			response:   ReferenceOutput,
 			pass:       true,
@@ -44,7 +44,7 @@ func TestGetByTypes(t *testing.T) {
 		},
 		{
 			name:       "error",
-			validTypes: []string{"movie", "tvSpecial"},
+			validTypes: []imdb.EntryType{imdb.Movie, imdb.TVSpecial},
 			fail:       true,
 			pass:       false,
 		},

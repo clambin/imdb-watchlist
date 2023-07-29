@@ -22,7 +22,7 @@ var _ prometheus.Collector = &Server{}
 //
 //go:generate mockery --name Reader
 type Reader interface {
-	ReadByTypes(validTypes ...string) (entries []imdb.Entry, err error)
+	ReadByTypes(validTypes ...imdb.EntryType) (entries []imdb.Entry, err error)
 }
 
 var _ Reader = &imdb.Fetcher{}

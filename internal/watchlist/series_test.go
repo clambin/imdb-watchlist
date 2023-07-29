@@ -2,9 +2,9 @@ package watchlist_test
 
 import (
 	"errors"
+	"github.com/clambin/imdb-watchlist/internal/watchlist"
+	"github.com/clambin/imdb-watchlist/internal/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/clambin/imdb-watchlist/watchlist"
-	"github.com/clambin/imdb-watchlist/watchlist/mocks"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -48,7 +48,7 @@ func TestServer_Series(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r.On("ReadByTypes", "tvSeries", "tvMiniSeries").Return(tt.entries, tt.err).Once()
+			r.On("ReadByTypes", imdb.TVSeries, imdb.TVMiniSeries).Return(tt.entries, tt.err).Once()
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
 

@@ -8,6 +8,8 @@ github.com/clambin/go-common/httpclient v0.6.0 h1:zSt9OV8ekXB/LwFwazEO4x8z+9p968
 github.com/clambin/go-common/httpclient v0.6.0/go.mod h1:77y+6LzAKdenkU+vwQFdNKyxs2HhUXEiqYwzS7Q9FKI=
 github.com/clambin/go-common/httpserver v0.11.0 h1:M1v8fHDjiCYt2XQ/TW5BiQxw8mWEWROylYMhwslEoFQ=
 github.com/clambin/go-common/httpserver v0.11.0/go.mod h1:b5cHmhWknlw4IJhoVIKgl0ZUH+XT9K2Y2sK+ob2bPto=
+github.com/clambin/go-common/set v0.2.0 h1:s4wXxKns3sb2VPCtAmmLEDs4KiHNIiot+LcKgKcdPdw=
+github.com/clambin/go-common/set v0.2.0/go.mod h1:GFjAZynNo4BNjlx2hzDMHIU4ays7QjpJUSHXB/3b1ZE=
 github.com/clambin/go-common/taskmanager v0.2.1 h1:zkh6hr4RqRHrJHIeBTRClAw7788IMHd//YbbbxCpUes=
 github.com/clambin/go-common/taskmanager v0.2.1/go.mod h1:BLq8MGQZVpj16USB4pHtikOVh4cDgnSjPIhTZyosAgM=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

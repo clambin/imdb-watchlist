@@ -1,7 +1,7 @@
 package watchlist_test
 
 import (
-	"github.com/clambin/imdb-watchlist/watchlist"
+	"github.com/clambin/imdb-watchlist/internal/watchlist"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

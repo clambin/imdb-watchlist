@@ -1,9 +1,9 @@
 package watchlist_test
 
 import (
+	"github.com/clambin/imdb-watchlist/internal/watchlist"
+	"github.com/clambin/imdb-watchlist/internal/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/clambin/imdb-watchlist/watchlist"
-	"github.com/clambin/imdb-watchlist/watchlist/mocks"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +15,7 @@ import (
 
 func TestServer_MakeRouter(t *testing.T) {
 	reader := mocks.NewReader(t)
-	reader.On("ReadByTypes", "tvSeries", "tvMiniSeries").Return([]imdb.Entry{}, nil)
+	reader.On("ReadByTypes", imdb.TVSeries, imdb.TVMiniSeries).Return([]imdb.Entry{}, nil)
 
 	s := watchlist.New("1234", reader)
 	r := s.MakeRouter()

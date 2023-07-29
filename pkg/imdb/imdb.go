@@ -2,6 +2,7 @@ package imdb
 
 import (
 	"errors"
+	"github.com/clambin/go-common/set"
 	"net/http"
 )
 
@@ -15,20 +16,32 @@ type Fetcher struct {
 // Entry is an entry in an IMDB watchlist
 type Entry struct {
 	IMDBId string
-	Type   string
+	Type   EntryType
 	Title  string
 }
 
+type EntryType string
+
+const (
+	Movie        EntryType = "movie"
+	TVSeries     EntryType = "tvSeries"
+	TVSpecial    EntryType = "tvSpecial"
+	TVMiniSeries EntryType = "tvMiniSeries"
+)
+
 // ReadByTypes queries an IMDB watchlist and returns the entries that match validTypes. If no validTtypes are provided,
 // all watchlist entries are returned.
-func (f Fetcher) ReadByTypes(validTypes ...string) ([]Entry, error) {
+func (f Fetcher) ReadByTypes(validTypes ...EntryType) ([]Entry, error) {
 	allEntries, err := f.getWatchlist()
 	if err != nil {
 		return nil, err
 	}
+
+	valid := set.Create(validTypes...)
+
 	var entries []Entry
 	for _, entry := range allEntries {
-		if checkType(entry.Type, validTypes...) {
+		if valid.Contains(entry.Type) {
 			entries = append(entries, entry)
 		}
 	}
@@ -57,13 +70,4 @@ func (f Fetcher) getWatchlist() ([]Entry, error) {
 	}
 
 	return parseList(resp.Body)
-}
-
-func checkType(entryType string, validTypes ...string) bool {
-	for _, validType := range validTypes {
-		if entryType == validType {
-			return true
-		}
-	}
-	return len(validTypes) == 0
 }
