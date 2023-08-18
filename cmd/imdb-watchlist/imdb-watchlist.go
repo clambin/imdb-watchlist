@@ -10,7 +10,7 @@ import (
 	"github.com/clambin/imdb-watchlist/internal/watchlist"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/prometheus/client_golang/prometheus"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,8 +19,7 @@ import (
 )
 
 var (
-	// BuildVersion contains the release number
-	BuildVersion = "change-me"
+	version = "change-me"
 
 	debug          = flag.Bool("debug", false, "Log debug messages")
 	addr           = flag.String("addr", ":8080", "Server address")
@@ -38,7 +37,7 @@ func main() {
 	}
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &opts)))
 
-	slog.Info("imdb-watchlist starting", "version", BuildVersion)
+	slog.Info("imdb-watchlist starting", "version", version)
 
 	if *listID == "" {
 		slog.Error("no IMDB List ID provided. Aborting.")

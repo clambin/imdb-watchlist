@@ -6,7 +6,7 @@ import (
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 )
 
@@ -19,8 +19,6 @@ type Server struct {
 var _ prometheus.Collector = &Server{}
 
 // Reader interface reads an IMDB watchlist
-//
-//go:generate mockery --name Reader
 type Reader interface {
 	ReadByTypes(validTypes ...imdb.EntryType) (entries []imdb.Entry, err error)
 }

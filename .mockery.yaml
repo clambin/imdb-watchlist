@@ -1,0 +1,9 @@
+with-expecter: true
+outpkg: mocks
+mockname: "{{.InterfaceName}}"
+packages:
+  github.com/clambin/imdb-watchlist/internal/watchlist:
+    interfaces:
+      Reader:
+    config:
+      dir: internal/watchlist/mocks

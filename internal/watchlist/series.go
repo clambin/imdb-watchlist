@@ -2,7 +2,7 @@ package watchlist
 
 import (
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 func (s *Server) getSeries() ([]Entry, error) {
