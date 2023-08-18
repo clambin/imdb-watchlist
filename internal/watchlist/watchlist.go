@@ -40,7 +40,7 @@ func New(apiKey string, reader Reader) *Server {
 func (s *Server) MakeRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Use(middleware.RequestLogger(slog.Default(), slog.LevelDebug, middleware.DefaultRequestLogFormatter))
+	r.Use(middleware.RequestLogger(slog.Default(), slog.LevelInfo, middleware.DefaultRequestLogFormatter))
 	r.Use(Authenticate(s.APIKey))
 	r.Use(s.metrics.Handle)
 

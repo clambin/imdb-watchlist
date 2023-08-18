@@ -29,7 +29,7 @@ func buildSeriesResponse(entries []imdb.Entry) []Entry {
 			IMDBId: entry.IMDBId,
 		})
 
-		slog.Info("imdb watchlist entry found",
+		slog.Debug("imdb watchlist entry found",
 			"title", entry.Title,
 			"imdbId", entry.IMDBId,
 			"count", len(sonarrEntries),
