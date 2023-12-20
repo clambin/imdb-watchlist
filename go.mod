@@ -7,7 +7,7 @@ require (
 	github.com/clambin/go-common/httpserver v0.12.0
 	github.com/clambin/go-common/set v0.3.0
 	github.com/clambin/go-common/taskmanager v0.3.0
-	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/chi/v5 v5.0.11
 	github.com/prometheus/client_golang v1.17.0
 	github.com/stretchr/testify v1.8.4
 )
