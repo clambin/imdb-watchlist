@@ -1,19 +1,15 @@
 package watchlist
 
 import (
-	"math/rand"
-)
-
-const (
-	characters = `0123456789abcdef`
-	size       = 32
+	"crypto/rand"
+	"encoding/hex"
 )
 
 // GenerateKey generates a Sonarr API Key
 func GenerateKey() string {
-	output := make([]byte, size)
-	for i := 0; i < size; i++ {
-		output[i] = characters[rand.Intn(len(characters))]
+	b := make([]byte, 16) // 16 bytes = 32 nibbles = 128 bits
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
 	}
-	return string(output)
+	return hex.EncodeToString(b)
 }

@@ -70,10 +70,10 @@ func (s *Server) Empty(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write([]byte(`[]`))
 }
 
-func (s *Server) Describe(descs chan<- *prometheus.Desc) {
-	s.metrics.Describe(descs)
+func (s *Server) Describe(ch chan<- *prometheus.Desc) {
+	s.metrics.Describe(ch)
 }
 
-func (s *Server) Collect(metrics chan<- prometheus.Metric) {
-	s.metrics.Collect(metrics)
+func (s *Server) Collect(ch chan<- prometheus.Metric) {
+	s.metrics.Collect(ch)
 }
