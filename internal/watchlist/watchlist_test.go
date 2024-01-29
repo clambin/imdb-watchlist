@@ -8,17 +8,17 @@ import (
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestServer_MakeRouter(t *testing.T) {
+func TestServer_Handle(t *testing.T) {
 	reader := mocks.NewReader(t)
-	reader.On("ReadByTypes", imdb.TVSeries, imdb.TVMiniSeries).Return([]imdb.Entry{}, nil)
+	reader.On("GetWatchlist", imdb.TVSeries, imdb.TVMiniSeries).Return([]imdb.Entry{}, nil)
 
-	s := watchlist.New("1234", reader)
-	r := s.MakeRouter()
+	s := watchlist.New(reader, slog.Default())
 
 	reg := prometheus.NewPedanticRegistry()
 	reg.MustRegister(s)
@@ -26,37 +26,22 @@ func TestServer_MakeRouter(t *testing.T) {
 	tests := []struct {
 		name       string
 		path       string
-		apiKey     string
 		statusCode int
 	}{
 		{
 			name:       "series",
 			path:       "/api/v3/series",
-			apiKey:     "1234",
 			statusCode: http.StatusOK,
 		},
 		{
 			name:       "devices",
 			path:       "/api/v3/importList/action/getDevices",
-			apiKey:     "1234",
 			statusCode: http.StatusOK,
 		},
 		{
 			name:       "qualityProfile",
 			path:       "/api/v3/qualityprofile",
-			apiKey:     "1234",
 			statusCode: http.StatusOK,
-		},
-		{
-			name:       "missing key",
-			path:       "/api/v3/series",
-			statusCode: http.StatusForbidden,
-		},
-		{
-			name:       "wrong key",
-			path:       "/api/v3/series",
-			apiKey:     "4321",
-			statusCode: http.StatusForbidden,
 		},
 	}
 
@@ -64,11 +49,8 @@ func TestServer_MakeRouter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "https://localhost"+tt.path, nil)
-			if tt.apiKey != "" {
-				req.Header.Set(watchlist.APIKeyHeader, tt.apiKey)
-			}
 
-			r.ServeHTTP(w, req)
+			s.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.statusCode, w.Code)
 		})

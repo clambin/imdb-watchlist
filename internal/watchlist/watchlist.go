@@ -10,38 +10,37 @@ import (
 	"net/http"
 )
 
-type Server struct {
-	APIKey  string
-	Reader  Reader
-	metrics *middleware.PrometheusMetrics
-}
-
 var _ prometheus.Collector = &Server{}
 
-// Reader interface reads an IMDB watchlist
-type Reader interface {
-	ReadByTypes(validTypes ...imdb.EntryType) (entries []imdb.Entry, err error)
+type Server struct {
+	reader Reader
+	http.Handler
+	metrics *middleware.PrometheusMetrics
+	logger  *slog.Logger
 }
 
-var _ Reader = &imdb.Fetcher{}
+var _ Reader = &imdb.WatchlistFetcher{}
 
-func New(apiKey string, reader Reader) *Server {
+type Reader interface {
+	GetWatchlist(validTypes ...imdb.EntryType) (entries []imdb.Entry, err error)
+}
+
+func New(reader Reader, logger *slog.Logger) *Server {
 	s := Server{
-		APIKey: apiKey,
-		Reader: reader,
+		reader: reader,
 		metrics: middleware.NewPrometheusMetrics(middleware.PrometheusMetricsOptions{
 			Application: "imdb-watchlist",
 		}),
+		logger: logger,
 	}
+	s.Handler = s.makeRouter()
 
 	return &s
 }
 
-func (s *Server) MakeRouter() http.Handler {
+func (s *Server) makeRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Use(middleware.RequestLogger(slog.Default(), slog.LevelInfo, middleware.DefaultRequestLogFormatter))
-	r.Use(Authenticate(s.APIKey))
 	r.Use(s.metrics.Handle)
 
 	r.Get("/api/v3/series", s.Series)
@@ -50,7 +49,7 @@ func (s *Server) MakeRouter() http.Handler {
 	return r
 }
 
-func (s *Server) Series(w http.ResponseWriter, _ *http.Request) {
+func (s *Server) Series(w http.ResponseWriter, r *http.Request) {
 	entries, err := s.getSeries()
 
 	if err != nil {

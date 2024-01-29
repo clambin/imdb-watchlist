@@ -21,7 +21,7 @@ func (_m *Reader) EXPECT() *Reader_Expecter {
 }
 
 // ReadByTypes provides a mock function with given fields: validTypes
-func (_m *Reader) ReadByTypes(validTypes ...imdb.EntryType) ([]imdb.Entry, error) {
+func (_m *Reader) GetWatchlist(validTypes ...imdb.EntryType) ([]imdb.Entry, error) {
 	_va := make([]interface{}, len(validTypes))
 	for _i := range validTypes {
 		_va[_i] = validTypes[_i]
@@ -52,7 +52,7 @@ func (_m *Reader) ReadByTypes(validTypes ...imdb.EntryType) ([]imdb.Entry, error
 	return r0, r1
 }
 
-// Reader_ReadByTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadByTypes'
+// Reader_ReadByTypes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetWatchlist'
 type Reader_ReadByTypes_Call struct {
 	*mock.Call
 }
@@ -60,7 +60,7 @@ type Reader_ReadByTypes_Call struct {
 // ReadByTypes is a helper method to define mock.On call
 //   - validTypes ...imdb.EntryType
 func (_e *Reader_Expecter) ReadByTypes(validTypes ...interface{}) *Reader_ReadByTypes_Call {
-	return &Reader_ReadByTypes_Call{Call: _e.mock.On("ReadByTypes",
+	return &Reader_ReadByTypes_Call{Call: _e.mock.On("GetWatchlist",
 		append([]interface{}{}, validTypes...)...)}
 }
 

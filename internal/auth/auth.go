@@ -1,4 +1,4 @@
-package watchlist
+package auth
 
 import "net/http"
 
