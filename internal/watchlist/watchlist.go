@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/clambin/go-common/httpserver/middleware"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"log/slog"
 	"net/http"
@@ -39,19 +38,20 @@ func New(reader Reader, logger *slog.Logger) *Server {
 }
 
 func (s *Server) makeRouter() http.Handler {
-	r := chi.NewRouter()
-
-	r.Use(s.metrics.Handle)
-
-	r.Get("/api/v3/series", s.Series)
-	r.Get("/api/v3/importList/action/getDevices", s.Empty)
-	r.Get("/api/v3/qualityprofile", s.Empty)
-	return r
+	m := http.NewServeMux()
+	m.Handle("/api/v3/series", s.metrics.Handle(http.HandlerFunc(s.Series)))
+	m.HandleFunc("/api/v3/importList/action/getDevices", s.Empty)
+	m.HandleFunc("/api/v3/qualityprofile", s.Empty)
+	return m
 }
 
 func (s *Server) Series(w http.ResponseWriter, r *http.Request) {
-	entries, err := s.getSeries()
+	if r.Method != http.MethodGet {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
 
+	entries, err := s.getSeries()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

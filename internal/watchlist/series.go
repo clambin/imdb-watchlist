@@ -19,21 +19,21 @@ type Entry struct {
 	IMDBId string `json:"imdbId"`
 }
 
-func (s *Server) buildSeriesResponse(entries []imdb.Entry) []Entry {
-	sonarrEntries := make([]Entry, 0)
+func (s *Server) buildSeriesResponse(imdbEntries []imdb.Entry) []Entry {
+	entries := make([]Entry, len(imdbEntries))
 
-	for _, entry := range entries {
-		sonarrEntries = append(sonarrEntries, Entry{
-			Title:  entry.Title,
-			IMDBId: entry.IMDBId,
-		})
+	for i := range imdbEntries {
+		entries[i] = Entry{
+			Title:  imdbEntries[i].Title,
+			IMDBId: imdbEntries[i].IMDBId,
+		}
 
 		s.logger.Debug("imdb watchlist entry found",
-			"title", entry.Title,
-			"imdbId", entry.IMDBId,
-			"count", len(sonarrEntries),
+			"title", imdbEntries[i].Title,
+			"imdbId", imdbEntries[i].IMDBId,
+			"count", i+1,
 		)
 	}
 
-	return sonarrEntries
+	return entries
 }

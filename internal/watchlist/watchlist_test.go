@@ -26,21 +26,31 @@ func TestServer_Handle(t *testing.T) {
 	tests := []struct {
 		name       string
 		path       string
+		method     string
 		statusCode int
 	}{
 		{
 			name:       "series",
 			path:       "/api/v3/series",
+			method:     http.MethodGet,
 			statusCode: http.StatusOK,
+		},
+		{
+			name:       "series - wrong method",
+			path:       "/api/v3/series",
+			method:     http.MethodPost,
+			statusCode: http.StatusMethodNotAllowed,
 		},
 		{
 			name:       "devices",
 			path:       "/api/v3/importList/action/getDevices",
+			method:     http.MethodGet,
 			statusCode: http.StatusOK,
 		},
 		{
 			name:       "qualityProfile",
 			path:       "/api/v3/qualityprofile",
+			method:     http.MethodGet,
 			statusCode: http.StatusOK,
 		},
 	}
@@ -48,7 +58,7 @@ func TestServer_Handle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodGet, "https://localhost"+tt.path, nil)
+			req, _ := http.NewRequest(tt.method, "https://localhost"+tt.path, nil)
 
 			s.ServeHTTP(w, req)
 
@@ -56,7 +66,8 @@ func TestServer_Handle(t *testing.T) {
 		})
 	}
 
+	//assert.NoError(t, testutil.GatherAndCompare(reg, bytes.NewBufferString(``)))
 	count, err := testutil.GatherAndCount(reg)
 	require.NoError(t, err)
-	assert.Equal(t, 6, count)
+	assert.Equal(t, 4, count)
 }
