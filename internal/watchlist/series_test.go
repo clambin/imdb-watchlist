@@ -6,6 +6,7 @@ import (
 	"github.com/clambin/imdb-watchlist/internal/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,7 +14,7 @@ import (
 
 func TestServer_Series(t *testing.T) {
 	r := mocks.NewReader(t)
-	s := watchlist.Server{Reader: r}
+	s := watchlist.New(r, slog.Default())
 
 	tests := []struct {
 		name    string
@@ -48,7 +49,7 @@ func TestServer_Series(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r.On("ReadByTypes", imdb.TVSeries, imdb.TVMiniSeries).Return(tt.entries, tt.err).Once()
+			r.On("GetWatchlist", imdb.TVSeries, imdb.TVMiniSeries).Return(tt.entries, tt.err).Once()
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
 

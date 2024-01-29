@@ -59,9 +59,9 @@ func TestGetByTypes(t *testing.T) {
 			s := httptest.NewServer(http.HandlerFunc(handler.Handle))
 			defer s.Close()
 
-			c := imdb.Fetcher{HTTPClient: http.DefaultClient, URL: s.URL}
+			c := imdb.WatchlistFetcher{HTTPClient: http.DefaultClient, URL: s.URL}
 
-			entries, err := c.ReadByTypes(tt.validTypes...)
+			entries, err := c.GetWatchlist(tt.validTypes...)
 
 			if !tt.pass {
 				assert.Error(t, err)
@@ -77,8 +77,8 @@ func TestGetByTypes(t *testing.T) {
 func TestClient_ReadByTypes_Error(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(nil))
 	s.Close()
-	c := imdb.Fetcher{HTTPClient: http.DefaultClient, URL: s.URL}
-	_, err := c.ReadByTypes()
+	c := imdb.WatchlistFetcher{HTTPClient: http.DefaultClient, URL: s.URL}
+	_, err := c.GetWatchlist()
 	assert.Error(t, err)
 }
 

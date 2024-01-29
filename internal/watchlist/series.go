@@ -2,16 +2,15 @@ package watchlist
 
 import (
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"log/slog"
 )
 
 func (s *Server) getSeries() ([]Entry, error) {
-	entries, err := s.Reader.ReadByTypes("tvSeries", "tvMiniSeries")
+	entries, err := s.reader.GetWatchlist("tvSeries", "tvMiniSeries")
 	if err != nil {
 		return nil, err
 	}
 
-	return buildSeriesResponse(entries), nil
+	return s.buildSeriesResponse(entries), nil
 }
 
 // Entry represents an entry in the IMDB watchlist
@@ -20,21 +19,21 @@ type Entry struct {
 	IMDBId string `json:"imdbId"`
 }
 
-func buildSeriesResponse(entries []imdb.Entry) []Entry {
-	sonarrEntries := make([]Entry, 0)
+func (s *Server) buildSeriesResponse(imdbEntries []imdb.Entry) []Entry {
+	entries := make([]Entry, len(imdbEntries))
 
-	for _, entry := range entries {
-		sonarrEntries = append(sonarrEntries, Entry{
-			Title:  entry.Title,
-			IMDBId: entry.IMDBId,
-		})
+	for i := range imdbEntries {
+		entries[i] = Entry{
+			Title:  imdbEntries[i].Title,
+			IMDBId: imdbEntries[i].IMDBId,
+		}
 
-		slog.Debug("imdb watchlist entry found",
-			"title", entry.Title,
-			"imdbId", entry.IMDBId,
-			"count", len(sonarrEntries),
+		s.logger.Debug("imdb watchlist entry found",
+			"title", imdbEntries[i].Title,
+			"imdbId", imdbEntries[i].IMDBId,
+			"count", i+1,
 		)
 	}
 
-	return sonarrEntries
+	return entries
 }

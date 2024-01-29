@@ -4,55 +4,54 @@ import (
 	"encoding/json"
 	"github.com/clambin/go-common/httpserver/middleware"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"log/slog"
 	"net/http"
 )
 
-type Server struct {
-	APIKey  string
-	Reader  Reader
-	metrics *middleware.PrometheusMetrics
-}
-
 var _ prometheus.Collector = &Server{}
 
-// Reader interface reads an IMDB watchlist
-type Reader interface {
-	ReadByTypes(validTypes ...imdb.EntryType) (entries []imdb.Entry, err error)
+type Server struct {
+	reader Reader
+	http.Handler
+	metrics *middleware.PrometheusMetrics
+	logger  *slog.Logger
 }
 
-var _ Reader = &imdb.Fetcher{}
+var _ Reader = &imdb.WatchlistFetcher{}
 
-func New(apiKey string, reader Reader) *Server {
+type Reader interface {
+	GetWatchlist(validTypes ...imdb.EntryType) (entries []imdb.Entry, err error)
+}
+
+func New(reader Reader, logger *slog.Logger) *Server {
 	s := Server{
-		APIKey: apiKey,
-		Reader: reader,
+		reader: reader,
 		metrics: middleware.NewPrometheusMetrics(middleware.PrometheusMetricsOptions{
 			Application: "imdb-watchlist",
 		}),
+		logger: logger,
 	}
+	s.Handler = s.makeRouter()
 
 	return &s
 }
 
-func (s *Server) MakeRouter() http.Handler {
-	r := chi.NewRouter()
-
-	r.Use(middleware.RequestLogger(slog.Default(), slog.LevelInfo, middleware.DefaultRequestLogFormatter))
-	r.Use(Authenticate(s.APIKey))
-	r.Use(s.metrics.Handle)
-
-	r.Get("/api/v3/series", s.Series)
-	r.Get("/api/v3/importList/action/getDevices", s.Empty)
-	r.Get("/api/v3/qualityprofile", s.Empty)
-	return r
+func (s *Server) makeRouter() http.Handler {
+	m := http.NewServeMux()
+	m.Handle("/api/v3/series", s.metrics.Handle(http.HandlerFunc(s.Series)))
+	m.HandleFunc("/api/v3/importList/action/getDevices", s.Empty)
+	m.HandleFunc("/api/v3/qualityprofile", s.Empty)
+	return m
 }
 
-func (s *Server) Series(w http.ResponseWriter, _ *http.Request) {
-	entries, err := s.getSeries()
+func (s *Server) Series(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
 
+	entries, err := s.getSeries()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

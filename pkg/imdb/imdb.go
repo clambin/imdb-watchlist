@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-// Fetcher fetches an IMDB watchlist and returns the entries that match a set of types
-type Fetcher struct {
+// WatchlistFetcher fetches an IMDB watchlist and returns the entries that match a set of types
+type WatchlistFetcher struct {
 	HTTPClient *http.Client
 	ListID     string
 	URL        string
@@ -31,13 +31,13 @@ const (
 
 // ReadByTypes queries an IMDB watchlist and returns the entries that match validTypes. If no validTtypes are provided,
 // all watchlist entries are returned.
-func (f Fetcher) ReadByTypes(validTypes ...EntryType) ([]Entry, error) {
+func (f WatchlistFetcher) GetWatchlist(validTypes ...EntryType) ([]Entry, error) {
 	allEntries, err := f.getWatchlist()
 	if err != nil {
 		return nil, err
 	}
 
-	valid := set.Create(validTypes...)
+	valid := set.New(validTypes...)
 
 	var entries []Entry
 	for _, entry := range allEntries {
@@ -48,7 +48,7 @@ func (f Fetcher) ReadByTypes(validTypes ...EntryType) ([]Entry, error) {
 	return entries, err
 }
 
-func (f Fetcher) getWatchlist() ([]Entry, error) {
+func (f WatchlistFetcher) getWatchlist() ([]Entry, error) {
 	url := "https://www.imdb.com"
 	if f.URL != "" {
 		url = f.URL
