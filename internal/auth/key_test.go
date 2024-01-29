@@ -1,7 +1,7 @@
-package watchlist_test
+package auth_test
 
 import (
-	"github.com/clambin/imdb-watchlist/internal/watchlist"
+	"github.com/clambin/imdb-watchlist/internal/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -11,7 +11,8 @@ func TestGenerateKey(t *testing.T) {
 	keys := make(map[string]struct{})
 
 	for i := 0; i < 1e4; i++ {
-		key := watchlist.GenerateKey()
+		key, err := auth.GenerateKey()
+		require.NoError(t, err)
 		require.Len(t, key, 32)
 
 		_, ok := keys[key]
@@ -22,6 +23,6 @@ func TestGenerateKey(t *testing.T) {
 
 func BenchmarkGenerateKey(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_ = watchlist.GenerateKey()
+		_, _ = auth.GenerateKey()
 	}
 }

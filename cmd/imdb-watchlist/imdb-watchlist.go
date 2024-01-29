@@ -46,7 +46,7 @@ func main() {
 
 	//TODO: not exactly secure. Create a separate tool to generate a key?
 	if *apiKey == "" {
-		*apiKey = watchlist.GenerateKey()
+		*apiKey, _ = auth.GenerateKey()
 		logger.Info("no API Key provided. generating a new one", "apikey", *apiKey)
 	}
 
