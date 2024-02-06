@@ -13,5 +13,5 @@ func GenerateKey() (string, error) {
 	if err == nil {
 		key = hex.EncodeToString(b)
 	}
-	return key, nil
+	return key, err
 }

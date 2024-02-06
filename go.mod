@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/clambin/go-common/httpclient v0.6.0
 	github.com/clambin/go-common/httpserver v0.12.0
-	github.com/clambin/go-common/set v0.4.1
+	github.com/clambin/go-common/set v0.4.2
 	github.com/clambin/go-common/taskmanager v0.3.0
 	github.com/prometheus/client_golang v1.18.0
 	github.com/stretchr/testify v1.8.4
