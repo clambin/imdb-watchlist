@@ -11,7 +11,7 @@ import (
 func TestGenerateKey(t *testing.T) {
 	keys := set.New[string]()
 
-	for i := 0; i < 1e4; i++ {
+	for range 10000 {
 		key, err := auth.GenerateKey()
 		require.NoError(t, err)
 		require.Len(t, key, 32)
@@ -22,7 +22,7 @@ func TestGenerateKey(t *testing.T) {
 }
 
 func BenchmarkGenerateKey(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, _ = auth.GenerateKey()
 	}
 }
