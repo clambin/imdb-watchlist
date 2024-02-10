@@ -32,7 +32,6 @@ var (
 
 func main() {
 	flag.Parse()
-
 	var opts slog.HandlerOptions
 	if *debug {
 		opts.Level = slog.LevelDebug
