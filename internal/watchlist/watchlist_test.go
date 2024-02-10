@@ -69,5 +69,5 @@ func TestServer_Handle(t *testing.T) {
 	//assert.NoError(t, testutil.GatherAndCompare(reg, bytes.NewBufferString(``)))
 	count, err := testutil.GatherAndCount(reg)
 	require.NoError(t, err)
-	assert.Equal(t, 4, count)
+	assert.Equal(t, 2, count)
 }

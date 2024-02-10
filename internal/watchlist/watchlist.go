@@ -39,18 +39,13 @@ func New(reader Reader, logger *slog.Logger) *Server {
 
 func (s *Server) makeRouter() http.Handler {
 	m := http.NewServeMux()
-	m.Handle("/api/v3/series", s.metrics.Handle(http.HandlerFunc(s.Series)))
+	m.Handle("GET /api/v3/series", s.metrics.Handle(http.HandlerFunc(s.Series)))
 	m.HandleFunc("/api/v3/importList/action/getDevices", s.Empty)
 	m.HandleFunc("/api/v3/qualityprofile", s.Empty)
 	return m
 }
 
 func (s *Server) Series(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-
 	entries, err := s.getSeries()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
