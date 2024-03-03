@@ -12,7 +12,7 @@ import (
 var _ prometheus.Collector = &Server{}
 
 type Server struct {
-	reader Reader
+	readers []Reader
 	http.Handler
 	metrics *middleware.PrometheusMetrics
 	logger  *slog.Logger
@@ -24,9 +24,9 @@ type Reader interface {
 	GetWatchlist(validTypes ...imdb.EntryType) (entries []imdb.Entry, err error)
 }
 
-func New(reader Reader, logger *slog.Logger) *Server {
+func New(logger *slog.Logger, readers ...Reader) *Server {
 	s := Server{
-		reader: reader,
+		readers: readers,
 		metrics: middleware.NewPrometheusMetrics(middleware.PrometheusMetricsOptions{
 			Application: "imdb-watchlist",
 		}),

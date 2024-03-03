@@ -29,7 +29,7 @@ const (
 	TVMiniSeries EntryType = "tvMiniSeries"
 )
 
-// ReadByTypes queries an IMDB watchlist and returns the entries that match validTypes. If no validTtypes are provided,
+// GetWatchlist queries an IMDB watchlist and returns the entries that match validTypes. If no validTtypes are provided,
 // all watchlist entries are returned.
 func (f WatchlistFetcher) GetWatchlist(validTypes ...EntryType) ([]Entry, error) {
 	allEntries, err := f.getWatchlist()

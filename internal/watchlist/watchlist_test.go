@@ -18,7 +18,7 @@ func TestServer_Handle(t *testing.T) {
 	reader := mocks.NewReader(t)
 	reader.On("GetWatchlist", imdb.TVSeries, imdb.TVMiniSeries).Return([]imdb.Entry{}, nil)
 
-	s := watchlist.New(reader, slog.Default())
+	s := watchlist.New(slog.Default(), reader)
 
 	reg := prometheus.NewPedanticRegistry()
 	reg.MustRegister(s)

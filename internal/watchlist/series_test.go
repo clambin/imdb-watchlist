@@ -6,6 +6,7 @@ import (
 	"github.com/clambin/imdb-watchlist/internal/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +15,7 @@ import (
 
 func TestServer_Series(t *testing.T) {
 	r := mocks.NewReader(t)
-	s := watchlist.New(r, slog.Default())
+	s := watchlist.New(slog.Default(), r)
 
 	tests := []struct {
 		name    string
@@ -49,7 +50,7 @@ func TestServer_Series(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r.On("GetWatchlist", imdb.TVSeries, imdb.TVMiniSeries).Return(tt.entries, tt.err).Once()
+			r.EXPECT().GetWatchlist(imdb.TVSeries, imdb.TVMiniSeries).Return(tt.entries, tt.err).Once()
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
 
@@ -65,4 +66,28 @@ func TestServer_Series(t *testing.T) {
 			assert.Equal(t, tt.body, w.Body.String())
 		})
 	}
+}
+
+func TestServer_Series_Unique(t *testing.T) {
+	r1 := mocks.NewReader(t)
+	r1.EXPECT().GetWatchlist(imdb.TVSeries, imdb.TVMiniSeries).Return([]imdb.Entry{
+		{IMDBId: "1", Type: "tvSeries", Title: "foo"},
+		{IMDBId: "2", Type: "tvSeries", Title: "bar"},
+	}, nil)
+	r2 := mocks.NewReader(t)
+	r2.EXPECT().GetWatchlist(imdb.TVSeries, imdb.TVMiniSeries).Return([]imdb.Entry{
+		{IMDBId: "1", Type: "tvSeries", Title: "foo"},
+		{IMDBId: "3", Type: "tvSeries", Title: "snafu"},
+	}, nil)
+	s := watchlist.New(slog.Default(), r1, r2)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
+
+	s.Series(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+	assert.Equal(t, `[{"title":"foo","imdbId":"1"},{"title":"bar","imdbId":"2"},{"title":"snafu","imdbId":"3"}]
+`, w.Body.String())
 }

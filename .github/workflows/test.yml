@@ -4,7 +4,7 @@ on:
   push:
     branches-ignore:
       - master
-      - go122
+      - multi
   pull_request_target:
 
 jobs:
@@ -12,3 +12,4 @@ jobs:
     uses: clambin/workflows/.github/workflows/test.yaml@go122
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
+

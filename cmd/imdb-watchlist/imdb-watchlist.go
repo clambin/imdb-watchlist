@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -26,7 +27,7 @@ var (
 	debug          = flag.Bool("debug", false, "Log debug messages")
 	addr           = flag.String("addr", ":8080", "Server address")
 	prometheusAddr = flag.String("prometheus", ":9090", "Prometheus metrics address")
-	listID         = flag.String("list", "", "IMDB List ID (required)")
+	listID         = flag.String("list", "", "IMDB List ID(s) (required, comma-separated)")
 	apiKey         = flag.String("apikey", "", "APIKey")
 )
 
@@ -49,14 +50,19 @@ func main() {
 		logger.Info("no API Key provided. generating a new one", "apikey", *apiKey)
 	}
 
-	r := imdb.WatchlistFetcher{
-		HTTPClient: &http.Client{
-			Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.DefaultCacheTable, 15*time.Minute, time.Hour)),
-		},
-		ListID: *listID,
+	var r []watchlist.Reader
+	httpClient := http.Client{
+		Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.DefaultCacheTable, 15*time.Minute, time.Hour)),
+	}
+	for _, id := range strings.Split(*listID, ",") {
+		logger.Info("list found", "listID", id)
+		r = append(r, imdb.WatchlistFetcher{
+			HTTPClient: &httpClient,
+			ListID:     id,
+		})
 	}
 
-	handler := watchlist.New(r, logger.With("component", "watchlist"))
+	handler := watchlist.New(logger.With("component", "watchlist"), r...)
 	prometheus.MustRegister(handler)
 
 	tm := taskmanager.New(

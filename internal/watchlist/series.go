@@ -5,11 +5,17 @@ import (
 )
 
 func (s *Server) getSeries() ([]Entry, error) {
-	entries, err := s.reader.GetWatchlist("tvSeries", "tvMiniSeries")
-	if err != nil {
-		return nil, err
+	var entries []imdb.Entry
+	for _, r := range s.readers {
+		newEntries, err := r.GetWatchlist("tvSeries", "tvMiniSeries")
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, newEntries...)
 	}
-
+	entries = Unique(entries, func(v imdb.Entry) string {
+		return v.IMDBId
+	})
 	return s.buildSeriesResponse(entries), nil
 }
 
