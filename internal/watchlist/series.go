@@ -1,9 +1,7 @@
 package watchlist
 
 import (
-	"cmp"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"slices"
 )
 
 func (s *Server) getSeries() ([]Entry, error) {
@@ -15,23 +13,10 @@ func (s *Server) getSeries() ([]Entry, error) {
 		}
 		entries = append(entries, newEntries...)
 	}
-	return s.buildSeriesResponse(unique(entries)), nil
-}
-
-func unique(input []imdb.Entry) []imdb.Entry {
-	slices.SortFunc(input, func(a, b imdb.Entry) int {
-		return cmp.Compare(a.IMDBId, b.IMDBId)
+	entries = Unique(entries, func(v imdb.Entry) string {
+		return v.IMDBId
 	})
-	var lastID string
-	entries := make([]imdb.Entry, 0, len(input))
-	for _, e := range input {
-		if e.IMDBId == lastID {
-			continue
-		}
-		entries = append(entries, e)
-		lastID = e.IMDBId
-	}
-	return entries
+	return s.buildSeriesResponse(entries), nil
 }
 
 // Entry represents an entry in the IMDB watchlist

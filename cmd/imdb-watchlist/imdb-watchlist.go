@@ -27,7 +27,7 @@ var (
 	debug          = flag.Bool("debug", false, "Log debug messages")
 	addr           = flag.String("addr", ":8080", "Server address")
 	prometheusAddr = flag.String("prometheus", ":9090", "Prometheus metrics address")
-	listID         = flag.String("list", "", "IMDB List ID (required)")
+	listID         = flag.String("list", "", "IMDB List ID(s) (required, comma-separated)")
 	apiKey         = flag.String("apikey", "", "APIKey")
 )
 
