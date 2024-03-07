@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strings"
 )
 
 func parseList(body io.Reader) ([]Entry, error) {
@@ -23,27 +24,28 @@ func parseList(body io.Reader) ([]Entry, error) {
 	return parseEntries(reader, indices)
 }
 
-func getColumnIndices(columns []string) (indices map[string]int, err error) {
-	var mandatory = map[string]bool{
-		"Const":      false,
-		"Title":      false,
-		"Title Type": false,
+func getColumnIndices(columns []string) (map[string]int, error) {
+	var mandatory = map[string]struct{}{
+		"Const":      {},
+		"Title":      {},
+		"Title Type": {},
 	}
 
-	indices = make(map[string]int)
+	indices := make(map[string]int, len(columns))
 	for index, column := range columns {
 		indices[column] = index
-		mandatory[column] = true
+		delete(mandatory, column)
 	}
 
-	for column, found := range mandatory {
-		if !found {
-			err = fmt.Errorf("imdb: mandatory field '%s' missing", column)
-			break
+	if len(mandatory) > 0 {
+		missing := make([]string, 0, len(mandatory))
+		for column := range mandatory {
+			missing = append(missing, column)
 		}
+		return nil, fmt.Errorf("imdb: mandatory fields missing: %s", strings.Join(missing, ","))
 	}
 
-	return
+	return indices, nil
 }
 
 func parseEntries(reader *csv.Reader, indices map[string]int) (entries []Entry, err error) {

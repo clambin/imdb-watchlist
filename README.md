@@ -25,7 +25,7 @@ Usage: imdb-watchlist --list=LIST [<flags>]
   -debug
         Log debug messages
   -list string
-        IMDB List ID (required)
+        IMDB List ID(s) (required, comma-separated)
   -prometheus string
         Prometheus metrics address (default ":9090")
 

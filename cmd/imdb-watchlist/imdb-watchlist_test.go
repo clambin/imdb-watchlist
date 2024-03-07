@@ -9,6 +9,7 @@ import (
 
 func Test_Main(t *testing.T) {
 	*listID = "1234,5678"
+	*debug = true
 	go main()
 
 	assert.Eventually(t, func() bool {

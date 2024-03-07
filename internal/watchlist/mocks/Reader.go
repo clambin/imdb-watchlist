@@ -20,35 +20,29 @@ func (_m *Reader) EXPECT() *Reader_Expecter {
 	return &Reader_Expecter{mock: &_m.Mock}
 }
 
-// GetWatchlist provides a mock function with given fields: validTypes
-func (_m *Reader) GetWatchlist(validTypes ...imdb.EntryType) ([]imdb.Entry, error) {
-	_va := make([]interface{}, len(validTypes))
-	for _i := range validTypes {
-		_va[_i] = validTypes[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+// GetWatchlist provides a mock function with given fields: listID
+func (_m *Reader) GetWatchlist(listID string) (imdb.Watchlist, error) {
+	ret := _m.Called(listID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetWatchlist")
 	}
 
-	var r0 []imdb.Entry
+	var r0 imdb.Watchlist
 	var r1 error
-	if rf, ok := ret.Get(0).(func(...imdb.EntryType) ([]imdb.Entry, error)); ok {
-		return rf(validTypes...)
+	if rf, ok := ret.Get(0).(func(string) (imdb.Watchlist, error)); ok {
+		return rf(listID)
 	}
-	if rf, ok := ret.Get(0).(func(...imdb.EntryType) []imdb.Entry); ok {
-		r0 = rf(validTypes...)
+	if rf, ok := ret.Get(0).(func(string) imdb.Watchlist); ok {
+		r0 = rf(listID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]imdb.Entry)
+			r0 = ret.Get(0).(imdb.Watchlist)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(...imdb.EntryType) error); ok {
-		r1 = rf(validTypes...)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(listID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -62,31 +56,24 @@ type Reader_GetWatchlist_Call struct {
 }
 
 // GetWatchlist is a helper method to define mock.On call
-//   - validTypes ...imdb.EntryType
-func (_e *Reader_Expecter) GetWatchlist(validTypes ...interface{}) *Reader_GetWatchlist_Call {
-	return &Reader_GetWatchlist_Call{Call: _e.mock.On("GetWatchlist",
-		append([]interface{}{}, validTypes...)...)}
+//   - listID string
+func (_e *Reader_Expecter) GetWatchlist(listID interface{}) *Reader_GetWatchlist_Call {
+	return &Reader_GetWatchlist_Call{Call: _e.mock.On("GetWatchlist", listID)}
 }
 
-func (_c *Reader_GetWatchlist_Call) Run(run func(validTypes ...imdb.EntryType)) *Reader_GetWatchlist_Call {
+func (_c *Reader_GetWatchlist_Call) Run(run func(listID string)) *Reader_GetWatchlist_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]imdb.EntryType, len(args)-0)
-		for i, a := range args[0:] {
-			if a != nil {
-				variadicArgs[i] = a.(imdb.EntryType)
-			}
-		}
-		run(variadicArgs...)
+		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *Reader_GetWatchlist_Call) Return(entries []imdb.Entry, err error) *Reader_GetWatchlist_Call {
+func (_c *Reader_GetWatchlist_Call) Return(entries imdb.Watchlist, err error) *Reader_GetWatchlist_Call {
 	_c.Call.Return(entries, err)
 	return _c
 }
 
-func (_c *Reader_GetWatchlist_Call) RunAndReturn(run func(...imdb.EntryType) ([]imdb.Entry, error)) *Reader_GetWatchlist_Call {
+func (_c *Reader_GetWatchlist_Call) RunAndReturn(run func(string) (imdb.Watchlist, error)) *Reader_GetWatchlist_Call {
 	_c.Call.Return(run)
 	return _c
 }

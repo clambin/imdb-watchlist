@@ -12,12 +12,10 @@ func Unique[V any, K cmp.Ordered](input []V, getKey func(V) K) []V {
 	var last K
 	entries := make([]V, 0, len(input))
 	for _, e := range input {
-		key := getKey(e)
-		if key == last {
-			continue
+		if key := getKey(e); key != last {
+			entries = append(entries, e)
+			last = key
 		}
-		entries = append(entries, e)
-		last = key
 	}
 	return entries
 }

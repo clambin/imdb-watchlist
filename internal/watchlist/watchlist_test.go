@@ -1,57 +1,122 @@
 package watchlist_test
 
 import (
+	"bytes"
+	"errors"
 	"github.com/clambin/imdb-watchlist/internal/watchlist"
 	"github.com/clambin/imdb-watchlist/internal/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestServer_Handle(t *testing.T) {
-	reader := mocks.NewReader(t)
-	reader.On("GetWatchlist", imdb.TVSeries, imdb.TVMiniSeries).Return([]imdb.Entry{}, nil)
-
-	s := watchlist.New(slog.Default(), reader)
-
-	reg := prometheus.NewPedanticRegistry()
-	reg.MustRegister(s)
-
+func TestServer_Series(t *testing.T) {
 	tests := []struct {
-		name       string
-		path       string
-		method     string
-		statusCode int
+		name           string
+		listIDs        []string
+		responses      map[string]imdb.Watchlist
+		err            error
+		wantStatusCode int
+		body           string
 	}{
 		{
-			name:       "series",
-			path:       "/api/v3/series",
-			method:     http.MethodGet,
-			statusCode: http.StatusOK,
+			name:           "empty",
+			listIDs:        []string{"1"},
+			responses:      map[string]imdb.Watchlist{"1": {}},
+			wantStatusCode: http.StatusOK,
+			body:           "[]\n",
 		},
 		{
-			name:       "series - wrong method",
-			path:       "/api/v3/series",
-			method:     http.MethodPost,
-			statusCode: http.StatusMethodNotAllowed,
+			name:    "single",
+			listIDs: []string{"1"},
+			responses: map[string]imdb.Watchlist{"1": {
+				{IMDBId: "1", Type: imdb.TVSeries, Title: "some series"},
+				{IMDBId: "2", Type: imdb.TVMiniSeries, Title: "some miniseries"},
+			}},
+			wantStatusCode: http.StatusOK,
+			body: `[{"title":"some series","imdbId":"1"},{"title":"some miniseries","imdbId":"2"}]
+`,
 		},
 		{
-			name:       "devices",
-			path:       "/api/v3/importList/action/getDevices",
-			method:     http.MethodGet,
-			statusCode: http.StatusOK,
+			name:    "multiple",
+			listIDs: []string{"1", "2"},
+			responses: map[string]imdb.Watchlist{
+				"1": {
+					{IMDBId: "1", Type: imdb.TVSeries, Title: "some series"},
+					{IMDBId: "2", Type: imdb.TVMiniSeries, Title: "some miniseries"},
+				},
+				"2": {
+					{IMDBId: "1", Type: imdb.TVSeries, Title: "some series"},
+					{IMDBId: "3", Type: imdb.TVMiniSeries, Title: "some other miniseries"},
+				},
+			},
+			wantStatusCode: http.StatusOK,
+			body: `[{"title":"some series","imdbId":"1"},{"title":"some miniseries","imdbId":"2"},{"title":"some other miniseries","imdbId":"3"}]
+`,
 		},
 		{
-			name:       "qualityProfile",
-			path:       "/api/v3/qualityprofile",
-			method:     http.MethodGet,
-			statusCode: http.StatusOK,
+			name:           "error",
+			listIDs:        []string{"1"},
+			responses:      map[string]imdb.Watchlist{"1": nil},
+			err:            errors.New("fail"),
+			wantStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := mocks.NewReader(t)
+			for id, responses := range tt.responses {
+				r.EXPECT().GetWatchlist(id).Return(responses, tt.err).Once()
+			}
+			s := watchlist.New(slog.Default(), r, tt.listIDs...)
+
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
+			s.Series(w, req)
+
+			assert.Equal(t, tt.wantStatusCode, w.Code)
+			if w.Code == http.StatusOK {
+				assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+				assert.Equal(t, tt.body, w.Body.String())
+			}
+		})
+	}
+}
+
+func TestServer_Handle(t *testing.T) {
+	s := watchlist.New(slog.Default(), nil)
+
+	tests := []struct {
+		name           string
+		listIDs        []string
+		responses      map[string]imdb.Watchlist
+		path           string
+		method         string
+		wantStatusCode int
+		want           string
+	}{
+		{
+			name:           "series - wrong method",
+			path:           "/api/v3/series",
+			method:         http.MethodPost,
+			wantStatusCode: http.StatusMethodNotAllowed,
+		},
+		{
+			name:           "devices",
+			path:           "/api/v3/importList/action/getDevices",
+			method:         http.MethodGet,
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			name:           "qualityProfile",
+			path:           "/api/v3/qualityprofile",
+			method:         http.MethodGet,
+			wantStatusCode: http.StatusOK,
 		},
 	}
 
@@ -62,12 +127,24 @@ func TestServer_Handle(t *testing.T) {
 
 			s.ServeHTTP(w, req)
 
-			assert.Equal(t, tt.statusCode, w.Code)
+			assert.Equal(t, tt.wantStatusCode, w.Code)
 		})
 	}
+}
 
-	//assert.NoError(t, testutil.GatherAndCompare(reg, bytes.NewBufferString(``)))
-	count, err := testutil.GatherAndCount(reg)
-	require.NoError(t, err)
-	assert.Equal(t, 2, count)
+func TestServer_Collect(t *testing.T) {
+	r := mocks.NewReader(t)
+	r.EXPECT().GetWatchlist("1").Return(nil, nil).Once()
+	s := watchlist.New(slog.Default(), r, "1")
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
+	s.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	assert.NoError(t, testutil.CollectAndCompare(s, bytes.NewBufferString(`
+# HELP http_requests_total Total number of http requests
+# TYPE http_requests_total counter
+http_requests_total{code="200",handler="imdb-watchlist",method="GET",path="/api/v3/series"} 1
+`), "http_requests_total"))
 }

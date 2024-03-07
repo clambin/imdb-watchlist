@@ -50,19 +50,13 @@ func main() {
 		logger.Info("no API Key provided. generating a new one", "apikey", *apiKey)
 	}
 
-	var r []watchlist.Reader
-	httpClient := http.Client{
-		Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.DefaultCacheTable, 15*time.Minute, time.Hour)),
-	}
-	for _, id := range strings.Split(*listID, ",") {
-		logger.Info("list found", "listID", id)
-		r = append(r, imdb.WatchlistFetcher{
-			HTTPClient: &httpClient,
-			ListID:     id,
-		})
+	reader := imdb.WatchlistFetcher{
+		HTTPClient: &http.Client{
+			Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.DefaultCacheTable, 15*time.Minute, time.Minute)),
+		},
 	}
 
-	handler := watchlist.New(logger.With("component", "watchlist"), r...)
+	handler := watchlist.New(logger.With("component", "watchlist"), reader, strings.Split(*listID, ",")...)
 	prometheus.MustRegister(handler)
 
 	tm := taskmanager.New(
