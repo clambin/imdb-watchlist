@@ -43,13 +43,16 @@ func TestWatchlistFetcher_GetWatchlist(t *testing.T) {
 				}
 				_, _ = w.Write([]byte(referenceOutput))
 			}))
-			defer s.Close()
 
 			c := imdb.WatchlistFetcher{HTTPClient: http.DefaultClient, URL: s.URL}
 
 			entries, err := c.GetWatchlist("1")
 			tt.wantErr(t, err)
 			assert.Equal(t, tt.want, entries)
+
+			s.Close()
+			_, err = c.GetWatchlist("1")
+			assert.Error(t, err)
 		})
 	}
 }
