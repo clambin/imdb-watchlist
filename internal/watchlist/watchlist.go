@@ -45,29 +45,23 @@ func New(logger *slog.Logger, reader Reader, listIDs ...string) *Server {
 	return &s
 }
 
-func (s *Server) Series(w http.ResponseWriter, _ *http.Request) {
-	all, err := s.queryWatchLists(imdb.TVSeries, imdb.TVMiniSeries)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(s.buildSeriesResponse(all)); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+func (s *Server) Series(w http.ResponseWriter, r *http.Request) {
+	s.handleListRequest(w, r, "show", imdb.TVSeries, imdb.TVMiniSeries)
 }
 
-func (s *Server) Movies(w http.ResponseWriter, _ *http.Request) {
-	all, err := s.queryWatchLists(imdb.Movie)
+func (s *Server) Movies(w http.ResponseWriter, r *http.Request) {
+	s.handleListRequest(w, r, "movie", imdb.Movie)
+}
+
+func (s *Server) handleListRequest(w http.ResponseWriter, _ *http.Request, mediaType string, entryType ...imdb.EntryType) {
+	all, err := s.queryWatchLists(entryType...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(s.buildSeriesResponse(all)); err != nil {
+	if err = json.NewEncoder(w).Encode(s.buildResponse(all, mediaType)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -93,11 +87,12 @@ type Entry struct {
 	IMDBId string `json:"imdbId"`
 }
 
-func (s *Server) buildSeriesResponse(imdbEntries []imdb.Entry) []Entry {
+func (s *Server) buildResponse(imdbEntries []imdb.Entry, mediaType string) []Entry {
 	entries := make([]Entry, len(imdbEntries))
 
+	l := s.logger.With("type", mediaType)
 	for i := range imdbEntries {
-		s.logger.Debug("imdb watchlist entry found", "title", imdbEntries[i].Title, "imdbId", imdbEntries[i].IMDBId)
+		l.Debug("imdb watchlist entry found", "title", imdbEntries[i].Title, "imdbId", imdbEntries[i].IMDBId)
 		entries[i] = Entry{
 			Title:  imdbEntries[i].Title,
 			IMDBId: imdbEntries[i].IMDBId,
