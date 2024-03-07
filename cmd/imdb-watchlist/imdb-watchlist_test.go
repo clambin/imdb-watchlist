@@ -2,12 +2,16 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"net/http"
 	"testing"
 	"time"
 )
 
 func Test_Main(t *testing.T) {
+	err := Main(slog.Default())
+	assert.Error(t, err)
+
 	*listID = "1234,5678"
 	*debug = true
 	go main()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"github.com/clambin/go-common/httpclient"
 	"github.com/clambin/go-common/httpserver/middleware"
@@ -38,10 +39,15 @@ func main() {
 		opts.Level = slog.LevelDebug
 	}
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, &opts))
-
-	if *listID == "" {
-		logger.Error("no IMDB List ID provided. Aborting.")
+	if err := Main(logger); err != nil {
+		logger.Error("failed to start", "err", err)
 		os.Exit(1)
+	}
+}
+
+func Main(logger *slog.Logger) error {
+	if *listID == "" {
+		return errors.New("no IMDB List ID provided")
 	}
 
 	//TODO: not exactly secure. Create a separate tool to generate a key?
@@ -62,7 +68,7 @@ func main() {
 	tm := taskmanager.New(
 		httpserver.New(
 			*addr,
-			middleware.RequestLogger(logger, slog.LevelInfo, middleware.RequestLogFormatterFunc(formatRequest))(
+			middleware.RequestLogger(logger, slog.LevelInfo, middleware.RequestLogFormatterFunc(watchlist.FormatRequest))(
 				auth.Authenticate(*apiKey)(
 					handler,
 				),
@@ -77,19 +83,5 @@ func main() {
 	logger.Info("imdb-watchlist starting", "version", version)
 	defer logger.Info("imdb-watchlist stopped")
 
-	if err := tm.Run(ctx); err != nil {
-		logger.Error("failed to start", "err", err)
-		os.Exit(1)
-	}
-}
-
-func formatRequest(r *http.Request, statusCode int, latency time.Duration) []slog.Attr {
-	return []slog.Attr{
-		slog.String("path", r.URL.Path),
-		slog.String("method", r.Method),
-		slog.String("source", r.RemoteAddr),
-		slog.String("agent", r.UserAgent()),
-		slog.Int("code", statusCode),
-		slog.Duration("latency", latency),
-	}
+	return tm.Run(ctx)
 }
