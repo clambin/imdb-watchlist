@@ -37,6 +37,7 @@ func New(logger *slog.Logger, reader Reader, listIDs ...string) *Server {
 
 	m := http.NewServeMux()
 	m.Handle("GET /api/v3/series", s.metrics.Handle(http.HandlerFunc(s.Series)))
+	m.Handle("GET /api/v3/movie", s.metrics.Handle(http.HandlerFunc(s.Movies)))
 	m.HandleFunc("/api/v3/importList/action/getDevices", s.Empty)
 	m.HandleFunc("/api/v3/qualityprofile", s.Empty)
 	s.Handler = m
@@ -46,6 +47,20 @@ func New(logger *slog.Logger, reader Reader, listIDs ...string) *Server {
 
 func (s *Server) Series(w http.ResponseWriter, _ *http.Request) {
 	all, err := s.queryWatchLists(imdb.TVSeries, imdb.TVMiniSeries)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(s.buildSeriesResponse(all)); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server) Movies(w http.ResponseWriter, _ *http.Request) {
+	all, err := s.queryWatchLists(imdb.Movie)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
