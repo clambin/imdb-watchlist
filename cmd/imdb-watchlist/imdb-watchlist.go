@@ -62,7 +62,7 @@ func Main(logger *slog.Logger) error {
 		},
 	}
 
-	handler := watchlist.New(logger.With("component", "watchlist"), reader, strings.Split(*listID, ",")...)
+	handler := watchlist.New(logger, reader, strings.Split(*listID, ",")...)
 	prometheus.MustRegister(handler)
 
 	tm := taskmanager.New(
