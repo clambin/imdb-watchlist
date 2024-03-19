@@ -2,20 +2,16 @@ package watchlist
 
 import (
 	"encoding/json"
-	"github.com/clambin/go-common/httpserver/middleware"
+	"github.com/clambin/go-common/http/middleware"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/prometheus/client_golang/prometheus"
 	"log/slog"
 	"net/http"
 )
-
-var _ prometheus.Collector = &Server{}
 
 type Server struct {
 	http.Handler
 	ListIDs []string
 	reader  Reader
-	metrics *middleware.PrometheusMetrics
 	logger  *slog.Logger
 }
 
@@ -25,19 +21,18 @@ type Reader interface {
 	GetWatchlist(listID string) (entries imdb.Watchlist, err error)
 }
 
-func New(logger *slog.Logger, reader Reader, listIDs ...string) *Server {
+func New(logger *slog.Logger, reader Reader, metrics middleware.ServerMetrics, listIDs ...string) *Server {
 	s := Server{
 		ListIDs: listIDs,
 		reader:  reader,
-		metrics: middleware.NewPrometheusMetrics(middleware.PrometheusMetricsOptions{
-			Application: "imdb-watchlist",
-		}),
-		logger: logger,
+		logger:  logger,
 	}
 
+	mw := middleware.WithServerMetrics(metrics)
+
 	m := http.NewServeMux()
-	m.Handle("GET /api/v3/series", s.metrics.Handle(http.HandlerFunc(s.Series)))
-	m.Handle("GET /api/v3/movie", s.metrics.Handle(http.HandlerFunc(s.Movies)))
+	m.Handle("GET /api/v3/series", mw(http.HandlerFunc(s.Series)))
+	m.Handle("GET /api/v3/movie", mw(http.HandlerFunc(s.Movies)))
 	m.HandleFunc("/api/v3/importList/action/getDevices", s.Empty)
 	m.HandleFunc("/api/v3/qualityprofile", s.Empty)
 	s.Handler = m
@@ -105,12 +100,4 @@ func (s *Server) buildResponse(imdbEntries []imdb.Entry, mediaType string) []Ent
 func (s *Server) Empty(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(`[]`))
-}
-
-func (s *Server) Describe(ch chan<- *prometheus.Desc) {
-	s.metrics.Describe(ch)
-}
-
-func (s *Server) Collect(ch chan<- prometheus.Metric) {
-	s.metrics.Collect(ch)
 }

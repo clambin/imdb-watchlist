@@ -1,24 +1,19 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"flag"
-	"github.com/clambin/go-common/httpclient"
-	"github.com/clambin/go-common/httpserver/middleware"
-	"github.com/clambin/go-common/taskmanager"
-	"github.com/clambin/go-common/taskmanager/httpserver"
-	promserver "github.com/clambin/go-common/taskmanager/prometheus"
+	"github.com/clambin/go-common/http/middleware"
+	"github.com/clambin/go-common/http/roundtripper"
 	"github.com/clambin/imdb-watchlist/internal/auth"
 	"github.com/clambin/imdb-watchlist/internal/watchlist"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
 	"net/http"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -53,35 +48,46 @@ func Main(logger *slog.Logger) error {
 	//TODO: not exactly secure. Create a separate tool to generate a key?
 	if *apiKey == "" {
 		*apiKey, _ = auth.GenerateKey()
-		logger.Info("no API Key provided. generating a new one", "apikey", *apiKey)
+		logger.Warn("no API Key provided. generating a new one", "apikey", *apiKey)
 	}
+
+	go func() {
+		if err := http.ListenAndServe(*prometheusAddr, promhttp.Handler()); !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("failed to start prometheus server", "err", err)
+			panic(err)
+		}
+	}()
+
+	clientMetrics := roundtripper.NewDefaultRoundTripMetrics("watchlist", "client", "")
+	prometheus.MustRegister(clientMetrics)
 
 	reader := imdb.WatchlistFetcher{
 		HTTPClient: &http.Client{
-			Transport: httpclient.NewRoundTripper(httpclient.WithCache(httpclient.DefaultCacheTable, 15*time.Minute, time.Minute)),
+			Transport: roundtripper.New(
+				roundtripper.WithCache(roundtripper.DefaultCacheTable, 15*time.Minute, time.Minute),
+				roundtripper.WithInstrumentedRoundTripper(clientMetrics),
+			),
+			Timeout: 10 * time.Second,
 		},
 	}
 
-	handler := watchlist.New(logger, reader, strings.Split(*listID, ",")...)
-	prometheus.MustRegister(handler)
-
-	tm := taskmanager.New(
-		httpserver.New(
-			*addr,
-			middleware.RequestLogger(logger, slog.LevelInfo, middleware.RequestLogFormatterFunc(watchlist.FormatRequest))(
-				auth.Authenticate(*apiKey)(
-					handler,
-				),
-			),
-		),
-		promserver.New(promserver.WithAddr(*prometheusAddr)),
-	)
-
-	ctx, done := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer done()
+	metrics := middleware.NewDefaultServerSummaryMetrics("watchlist", "", "")
+	prometheus.MustRegister(metrics)
 
 	logger.Info("imdb-watchlist starting", "version", version)
 	defer logger.Info("imdb-watchlist stopped")
 
-	return tm.Run(ctx)
+	err := http.ListenAndServe(*addr,
+		middleware.RequestLogger(logger, slog.LevelInfo, middleware.RequestLogFormatterFunc(watchlist.FormatRequest))(
+			auth.Authenticate(*apiKey)(
+				watchlist.New(logger, reader, metrics, strings.Split(*listID, ",")...),
+			),
+		),
+	)
+
+	if !errors.Is(err, http.ErrServerClosed) {
+		logger.Error("failed to start imdb-watchlist", "err", err)
+		return err
+	}
+	return nil
 }

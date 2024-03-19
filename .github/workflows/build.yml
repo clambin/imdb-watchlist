@@ -4,7 +4,7 @@ on:
   push:
     branches:
     - master
-    - radarr
+    - http
 
 jobs:
   test:
