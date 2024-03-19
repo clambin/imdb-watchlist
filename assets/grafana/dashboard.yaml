@@ -1,0 +1,54 @@
+---
+apiVersion: k8s.kevingomez.fr/v1
+kind: GrafanaDashboard
+metadata:
+   annotations:
+      dark/folder: Media
+   name: watchlist
+   namespace: media
+spec:
+   title: Watchlist
+   tags: [generated,yaml]
+   auto_refresh: 30s
+   time:
+      - now-6h
+      - now
+   rows:
+   - name: Statistics
+     panels:
+     - timeseries:
+         title: server requests
+         span: 6
+         targets:
+         - prometheus:
+             query: sum by (code) (rate(watchlist_http_server_requests_total[$__rate_interval]))
+             legend: "{{code}}"
+         axis:
+           unit: reqps
+     - timeseries:
+         title: server request duration
+         span: 6
+         targets:
+         - prometheus:
+             query: avg by (path) (watchlist_http_server_request_duration_seconds_sum/watchlist_http_server_request_duration_seconds_count)
+             legend: "{{path}}"
+         axis:
+           unit: s
+     - timeseries:
+         title: client requests
+         span: 6
+         targets:
+          - prometheus:
+              query: sum by (code) (rate(watchlist_client_http_requests_total[$__rate_interval]))
+              legend: "{{code}}"
+         axis:
+           unit: reqps
+     - timeseries:
+         title: client request duration
+         span: 6
+         targets:
+         - prometheus:
+             query: avg by (path) (watchlist_client_http_request_duration_seconds_sum/watchlist_client_http_request_duration_seconds_count)
+         legend: [hide]
+         axis:
+           unit: s

@@ -1,12 +1,11 @@
 package watchlist_test
 
 import (
-	"bytes"
 	"errors"
+	"github.com/clambin/go-common/http/middleware"
 	"github.com/clambin/imdb-watchlist/internal/watchlist"
 	"github.com/clambin/imdb-watchlist/internal/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
-	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"log/slog"
 	"net/http"
@@ -73,7 +72,7 @@ func TestServer_Series(t *testing.T) {
 			for id, responses := range tt.responses {
 				r.EXPECT().GetWatchlist(id).Return(responses, tt.err).Once()
 			}
-			s := watchlist.New(slog.Default(), r, tt.listIDs...)
+			s := watchlist.New(slog.Default(), r, middleware.NoMetrics{}, tt.listIDs...)
 
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
@@ -147,7 +146,8 @@ func TestServer_Movie(t *testing.T) {
 			for id, responses := range tt.responses {
 				r.EXPECT().GetWatchlist(id).Return(responses, tt.err).Once()
 			}
-			s := watchlist.New(slog.Default(), r, tt.listIDs...)
+
+			s := watchlist.New(slog.Default(), r, middleware.NoMetrics{}, tt.listIDs...)
 
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/api/v3/movie", nil)
@@ -163,7 +163,7 @@ func TestServer_Movie(t *testing.T) {
 }
 
 func TestServer_Handle(t *testing.T) {
-	s := watchlist.New(slog.Default(), nil)
+	s := watchlist.New(slog.Default(), nil, middleware.NoMetrics{})
 
 	tests := []struct {
 		name           string
@@ -204,21 +204,4 @@ func TestServer_Handle(t *testing.T) {
 			assert.Equal(t, tt.wantStatusCode, w.Code)
 		})
 	}
-}
-
-func TestServer_Collect(t *testing.T) {
-	r := mocks.NewReader(t)
-	r.EXPECT().GetWatchlist("1").Return(nil, nil).Once()
-	s := watchlist.New(slog.Default(), r, "1")
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
-	s.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	assert.NoError(t, testutil.CollectAndCompare(s, bytes.NewBufferString(`
-# HELP http_requests_total Total number of http requests
-# TYPE http_requests_total counter
-http_requests_total{code="200",handler="imdb-watchlist",method="GET",path="/api/v3/series"} 1
-`), "http_requests_total"))
 }

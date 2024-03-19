@@ -1,12 +1,10 @@
 module github.com/clambin/imdb-watchlist
 
-go 1.22
+go 1.22.1
 
 require (
-	github.com/clambin/go-common/httpclient v0.6.0
-	github.com/clambin/go-common/httpserver v0.12.0
+	github.com/clambin/go-common/http v0.3.0
 	github.com/clambin/go-common/set v0.4.3
-	github.com/clambin/go-common/taskmanager v0.3.0
 	github.com/prometheus/client_golang v1.19.0
 	github.com/stretchr/testify v1.9.0
 )
