@@ -31,11 +31,11 @@ Usage: imdb-watchlist --list=LIST [<flags>]
 
 ```
 
-If '--apikey' is not specified, imdb-watchlist will generate one automatically and list in the logfile.
+If '-apikey' is not specified, imdb-watchlist generates & logs a key automatically.
 
 ### Configuring Sonarr
 
-Add an Import List in Sonarr, specifying the API KEY described above.
+Add an Import List in Sonarr/Radarr, specifying the API key described above.
 
 ## Authors
 
