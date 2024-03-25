@@ -2,6 +2,7 @@ package watchlist
 
 import (
 	"encoding/json"
+	"github.com/clambin/go-common/http/metrics"
 	"github.com/clambin/go-common/http/middleware"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"log/slog"
@@ -21,14 +22,14 @@ type Reader interface {
 	GetWatchlist(listID string) (entries imdb.Watchlist, err error)
 }
 
-func New(logger *slog.Logger, reader Reader, metrics middleware.ServerMetrics, listIDs ...string) *Server {
+func New(logger *slog.Logger, reader Reader, metrics metrics.RequestMetrics, listIDs ...string) *Server {
 	s := Server{
 		ListIDs: listIDs,
 		reader:  reader,
 		logger:  logger,
 	}
 
-	mw := middleware.WithServerMetrics(metrics)
+	mw := middleware.WithRequestMetrics(metrics)
 
 	m := http.NewServeMux()
 	m.Handle("GET /api/v3/series", mw(http.HandlerFunc(s.Series)))
