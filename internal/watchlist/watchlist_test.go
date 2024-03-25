@@ -2,7 +2,7 @@ package watchlist_test
 
 import (
 	"errors"
-	"github.com/clambin/go-common/http/middleware"
+	"github.com/clambin/go-common/http/metrics"
 	"github.com/clambin/imdb-watchlist/internal/watchlist"
 	"github.com/clambin/imdb-watchlist/internal/watchlist/mocks"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
@@ -72,7 +72,7 @@ func TestServer_Series(t *testing.T) {
 			for id, responses := range tt.responses {
 				r.EXPECT().GetWatchlist(id).Return(responses, tt.err).Once()
 			}
-			s := watchlist.New(slog.Default(), r, middleware.NoMetrics{}, tt.listIDs...)
+			s := watchlist.New(slog.Default(), r, metrics.NewRequestSummaryMetrics("", "", nil), tt.listIDs...)
 
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/api/v3/series", nil)
@@ -147,7 +147,7 @@ func TestServer_Movie(t *testing.T) {
 				r.EXPECT().GetWatchlist(id).Return(responses, tt.err).Once()
 			}
 
-			s := watchlist.New(slog.Default(), r, middleware.NoMetrics{}, tt.listIDs...)
+			s := watchlist.New(slog.Default(), r, metrics.NewRequestSummaryMetrics("", "", nil), tt.listIDs...)
 
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest(http.MethodGet, "/api/v3/movie", nil)
@@ -163,7 +163,7 @@ func TestServer_Movie(t *testing.T) {
 }
 
 func TestServer_Handle(t *testing.T) {
-	s := watchlist.New(slog.Default(), nil, middleware.NoMetrics{})
+	s := watchlist.New(slog.Default(), nil, metrics.NewRequestSummaryMetrics("", "", nil))
 
 	tests := []struct {
 		name           string

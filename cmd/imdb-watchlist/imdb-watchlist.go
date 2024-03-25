@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"github.com/clambin/go-common/http/metrics"
 	"github.com/clambin/go-common/http/middleware"
 	"github.com/clambin/go-common/http/roundtripper"
 	"github.com/clambin/imdb-watchlist/internal/auth"
@@ -58,21 +59,21 @@ func Main(logger *slog.Logger) error {
 		}
 	}()
 
-	clientMetrics := roundtripper.NewDefaultRoundTripMetrics("watchlist", "client", "")
+	clientMetrics := metrics.NewRequestSummaryMetrics("watchlist", "client", nil)
 	prometheus.MustRegister(clientMetrics)
 
 	reader := imdb.WatchlistFetcher{
 		HTTPClient: &http.Client{
 			Transport: roundtripper.New(
 				roundtripper.WithCache(roundtripper.DefaultCacheTable, 15*time.Minute, time.Minute),
-				roundtripper.WithInstrumentedRoundTripper(clientMetrics),
+				roundtripper.WithRequestMetrics(clientMetrics),
 			),
 			Timeout: 10 * time.Second,
 		},
 	}
 
-	metrics := middleware.NewDefaultServerSummaryMetrics("watchlist", "", "")
-	prometheus.MustRegister(metrics)
+	serverMetrics := metrics.NewRequestSummaryMetrics("watchlist", "", nil)
+	prometheus.MustRegister(serverMetrics)
 
 	logger.Info("imdb-watchlist starting", "version", version)
 	defer logger.Info("imdb-watchlist stopped")
@@ -80,7 +81,7 @@ func Main(logger *slog.Logger) error {
 	err := http.ListenAndServe(*addr,
 		middleware.RequestLogger(logger, slog.LevelInfo, middleware.RequestLogFormatterFunc(watchlist.FormatRequest))(
 			auth.Authenticate(*apiKey)(
-				watchlist.New(logger, reader, metrics, strings.Split(*listID, ",")...),
+				watchlist.New(logger, reader, serverMetrics, strings.Split(*listID, ",")...),
 			),
 		),
 	)
