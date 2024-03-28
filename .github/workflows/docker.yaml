@@ -19,7 +19,7 @@ jobs:
       - uses: docker/metadata-action@v5.5.1
         id: docker_meta
         with:
-          images: ghcr.io/${{ inputs.repo }}/${{ inputs.image || inputs.target }}
+          images: ghcr.io/clambin/imdb-watchlist
           tags: |
             type=sha
             type=semver,pattern={{version}}
