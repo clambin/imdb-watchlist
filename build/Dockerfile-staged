@@ -6,6 +6,7 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG VERSION
 ENV VERSION=$VERSION
+ARG TARGET_BINARY
 
 WORKDIR /app/
 ADD . .
@@ -13,14 +14,15 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build \
     -ldflags="-X main.version=$VERSION" \
     -o imdb-watchlist \
-    cmd/imdb-watchlist/imdb-watchlist.go
+    cmd/${TARGET_BINARY}/${TARGET_BINARY}.go
 
 
 FROM alpine
 
-WORKDIR /app
+ARG TARGET_BINARY
 
-COPY --from=builder /app/imdb-watchlist /app/imdb-watchlist
+WORKDIR /app
+COPY --from=builder /app/${TARGET_BINARY} /app/${TARGET_BINARY}
 
 RUN /usr/sbin/addgroup app
 RUN /usr/sbin/adduser app -G app -D

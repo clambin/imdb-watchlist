@@ -23,10 +23,6 @@ jobs:
           tags: |
             type=sha
             type=semver,pattern={{version}}
-      - name: get branch
-        shell: bash
-        run: |
-          echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - uses: docker/build-push-action@v5.3.0
         with:
           context: .
@@ -36,4 +32,5 @@ jobs:
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
           build-args: |
-            VERSION=${{ env.BRANCH }}-${{ steps.docker_meta.outputs.version }}
+            VERSION=${{ steps.docker_meta.outputs.version }}
+            TARGET_BINARY=imdb-watchlist
