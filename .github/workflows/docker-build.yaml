@@ -37,7 +37,7 @@ jobs:
         with:
           context: .
           file: ${{ inputs.dockerfile }}
-          platforms: ${{ inputs.platform }}
+          platforms: ${{ inputs.platforms }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
