@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/docker-build.yaml
+    uses: clambin/workflows/.github/workflows/docker-build.yaml@docker
     with:
       image: ghcr.io/clambin/imdb-watchlist
       dockerfile: build/Dockerfile-staged
