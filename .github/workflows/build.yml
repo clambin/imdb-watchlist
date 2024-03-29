@@ -14,7 +14,7 @@ jobs:
   build:
     needs:
       - test
-    uses: clambin/workflows/.github/workflows/docker-build.yaml@docker
+    uses: clambin/workflows/.github/workflows/build.yaml@docker
     with:
       image: ghcr.io/clambin/imdb-watchlist
       dockerfile: build/Dockerfile
