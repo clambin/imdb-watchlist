@@ -16,7 +16,7 @@ jobs:
     uses: clambin/workflows/.github/workflows/build.yaml@docker
     with:
       image: ghcr.io/clambin/imdb-watchlist
-      dockerfile: build/Dockerfile-staged
+      dockerfile: build/Dockerfile
   release:
     needs:
       - build
