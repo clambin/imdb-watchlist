@@ -13,7 +13,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build \
     -ldflags="-X main.version=$VERSION" \
     -o imdb-watchlist \
-    cmd/imdb-watchlist}/imdb-watchlist.go
+    cmd/imdb-watchlist/imdb-watchlist.go
 
 
 FROM alpine
