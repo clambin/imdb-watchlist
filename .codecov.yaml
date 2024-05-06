@@ -1,2 +1,4 @@
 ignore:
   - "**/mocks/*.go"
+  - "cmd/imdb-watchlist/imdb-watchlist.go"
+  - "internal/testutils/*.go"
