@@ -12,5 +12,5 @@ func TestGetConfiguration(t *testing.T) {
 	*listID = "ls001"
 	cfg, err := GetConfiguration()
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"ls001"}, cfg.ListID)
+	assert.Equal(t, []string{"ls001"}, cfg.ListIDs)
 }

@@ -1,8 +1,11 @@
 package imdb_test
 
 import (
+	"bytes"
+	"github.com/clambin/go-common/testutils"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"testing"
 )
 
@@ -46,4 +49,19 @@ func TestWatchlist_Filter(t *testing.T) {
 			assert.Equal(t, tt.want, baseWatchlist.Filter(tt.entryTypes...))
 		})
 	}
+}
+
+func TestWatchlist_LogValue(t *testing.T) {
+	watchlist := imdb.Watchlist{
+		{IMDBId: "1", Type: imdb.Movie, Title: "movie"},
+		{IMDBId: "2", Type: imdb.TVSeries, Title: "series"},
+		{IMDBId: "3", Type: imdb.TVMiniSeries, Title: "miniSeries"},
+	}
+
+	var output bytes.Buffer
+	l := testutils.NewJSONLogger(&output, slog.LevelInfo)
+	l.Info("watchlist", "entries", watchlist)
+
+	assert.Equal(t, `{"level":"INFO","msg":"watchlist","entries":{"1":{"title":"movie","type":"movie"},"2":{"title":"series","type":"tvSeries"},"3":{"title":"miniSeries","type":"tvMiniSeries"}}}
+`, output.String())
 }

@@ -8,11 +8,11 @@ import (
 	"slices"
 )
 
-type Reader interface {
+type WatchlistReader interface {
 	GetWatchlist(id string) (imdb.Watchlist, error)
 }
 
-func New(watchlistIDs []string, reader Reader, logger *slog.Logger) http.Handler {
+func New(watchlistIDs []string, reader WatchlistReader, logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 	addRoutes(mux, reader, watchlistIDs, logger)
 	return mux

@@ -27,9 +27,9 @@ func TestRun(t *testing.T) {
 	config := configuration.Configuration{
 		Addr:     ":8080",
 		PromAddr: ":9090",
-		ListID:   []string{"ls001"},
+		ListIDs:  []string{"ls001"},
 		APIKey:   "1234567890",
-		ImdbURL:  testServer.URL,
+		ImDbURL:  testServer.URL,
 	}
 
 	go func() {
@@ -112,8 +112,8 @@ func TestRun_Metrics(t *testing.T) {
 	config := configuration.Configuration{
 		Addr:     ":8080",
 		PromAddr: ":9090",
-		ListID:   []string{"ls001"},
-		ImdbURL:  testServer.URL,
+		ListIDs:  []string{"ls001"},
+		ImDbURL:  testServer.URL,
 	}
 
 	r := prometheus.NewRegistry()

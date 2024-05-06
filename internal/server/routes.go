@@ -8,17 +8,17 @@ import (
 
 func addRoutes(
 	mux *http.ServeMux,
-	fetcher Reader,
+	fetcher WatchlistReader,
 	listIDs []string,
 	logger *slog.Logger,
 ) {
-	mux.Handle("GET /api/v3/series", IMDBHandler(
+	mux.Handle("GET /api/v3/series", WatchlistHandler(
 		fetcher,
 		listIDs,
 		[]imdb.EntryType{imdb.TVSeries, imdb.TVMiniSeries, imdb.TVSpecial},
 		logger.With("handler", "imdbHandler", "type", "series"),
 	))
-	mux.Handle("GET /api/v3/movie", IMDBHandler(
+	mux.Handle("GET /api/v3/movie", WatchlistHandler(
 		fetcher,
 		listIDs,
 		[]imdb.EntryType{imdb.Movie},
@@ -26,4 +26,7 @@ func addRoutes(
 	))
 	mux.Handle("/api/v3/importList/action/getDevices", EmptyHandler())
 	mux.Handle("/api/v3/qualityprofile", EmptyHandler())
+	mux.Handle("/api/v3/languageprofile", EmptyHandler())
+	mux.Handle("/api/v3/rootfolder", EmptyHandler())
+	mux.Handle("/api/v3/tag", EmptyHandler())
 }

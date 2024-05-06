@@ -33,10 +33,10 @@ func Run(ctx context.Context, config configuration.Configuration, registerer pro
 
 	f := imdb.WatchlistFetcher{
 		HTTPClient: http.DefaultClient,
-		URL:        config.ImdbURL,
+		URL:        config.ImDbURL,
 	}
 
-	h := New(config.ListID, f, logger)
+	h := New(config.ListIDs, f, logger)
 	if config.APIKey != "" {
 		h = auth.Authenticate(config.APIKey)(h)
 	}
@@ -45,7 +45,7 @@ func Run(ctx context.Context, config configuration.Configuration, registerer pro
 		registerer.MustRegister(m)
 		h = middleware.WithRequestMetrics(m)(h)
 	}
-	h = middleware.RequestLogger(logger, slog.LevelInfo, middleware.RequestLogFormatterFunc(FormatRequest))(h)
+	h = middleware.RequestLogger(logger, slog.LevelDebug, middleware.RequestLogFormatterFunc(FormatRequest))(h)
 
 	serverErr := make(chan error)
 	go func() {

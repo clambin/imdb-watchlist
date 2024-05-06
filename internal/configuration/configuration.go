@@ -18,9 +18,9 @@ type Configuration struct {
 	Debug    bool
 	Addr     string
 	PromAddr string
-	ListID   []string
+	ListIDs  []string
 	APIKey   string
-	ImdbURL  string
+	ImDbURL  string
 }
 
 func GetConfiguration() (Configuration, error) {
@@ -32,7 +32,7 @@ func GetConfiguration() (Configuration, error) {
 		Debug:    *debug,
 		Addr:     *addr,
 		PromAddr: *promAddr,
-		ListID:   strings.Split(*listID, ","),
+		ListIDs:  strings.Split(*listID, ","),
 		APIKey:   *apiKey,
 	}, nil
 }

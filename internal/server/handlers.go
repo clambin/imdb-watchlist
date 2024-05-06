@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func IMDBHandler(watcher Reader, listIDs []string, mediaTypes []imdb.EntryType, logger *slog.Logger) http.Handler {
+func WatchlistHandler(watcher WatchlistReader, listIDs []string, mediaTypes []imdb.EntryType, logger *slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var list imdb.Watchlist
 		for _, listID := range listIDs {
@@ -20,6 +20,7 @@ func IMDBHandler(watcher Reader, listIDs []string, mediaTypes []imdb.EntryType, 
 			list = append(list, entries.Filter(mediaTypes...)...)
 		}
 		list = unique(list, func(v imdb.Entry) string { return v.IMDBId })
+		logger.Info("watchlist entries found", "list", list)
 		writeResponse(w, http.StatusOK, buildResponse(list))
 	})
 }
