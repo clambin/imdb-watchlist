@@ -6,6 +6,14 @@ import (
 	"net/http"
 )
 
+var stubbedRoutes = []string{
+	"/api/v3/importList/action/getDevices",
+	"/api/v3/qualityprofile",
+	"/api/v3/languageprofile",
+	"/api/v3/rootfolder",
+	"/api/v3/tag",
+}
+
 func addRoutes(
 	mux *http.ServeMux,
 	fetcher WatchlistReader,
@@ -22,11 +30,9 @@ func addRoutes(
 		fetcher,
 		listIDs,
 		[]imdb.EntryType{imdb.Movie},
-		logger.With("handler", "imdbHandler", "type", "series"),
+		logger.With("handler", "imdbHandler", "type", "movie"),
 	))
-	mux.Handle("/api/v3/importList/action/getDevices", EmptyHandler())
-	mux.Handle("/api/v3/qualityprofile", EmptyHandler())
-	mux.Handle("/api/v3/languageprofile", EmptyHandler())
-	mux.Handle("/api/v3/rootfolder", EmptyHandler())
-	mux.Handle("/api/v3/tag", EmptyHandler())
+	for _, stubbedRoute := range stubbedRoutes {
+		mux.Handle(stubbedRoute, EmptyHandler())
+	}
 }
