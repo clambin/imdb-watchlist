@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"github.com/clambin/imdb-watchlist/pkg/imdb"
+	"github.com/clambin/imdb-watchlist/pkg/unique"
 	"log/slog"
 	"net/http"
 )
@@ -19,7 +20,7 @@ func WatchlistHandler(watcher WatchlistReader, listIDs []string, mediaTypes []im
 			}
 			list = append(list, entries.Filter(mediaTypes...)...)
 		}
-		list = unique(list, func(v imdb.Entry) string { return v.IMDBId })
+		list = unique.UniqueFunc(list, func(v imdb.Entry) string { return v.IMDBId })
 		logger.Info("watchlist entries found", "list", list)
 		writeResponse(w, http.StatusOK, buildResponse(list))
 	})
