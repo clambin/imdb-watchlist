@@ -1,7 +1,6 @@
 package auth_test
 
 import (
-	"github.com/clambin/go-common/set"
 	"github.com/clambin/imdb-watchlist/internal/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -9,20 +8,20 @@ import (
 )
 
 func TestGenerateKey(t *testing.T) {
-	keys := set.New[string]()
+	keys := make(map[string]struct{})
 
 	for range 10000 {
-		key, err := auth.GenerateKey()
-		require.NoError(t, err)
+		key := auth.GenerateKey()
 		require.Len(t, key, 32)
 
-		assert.False(t, keys.Contains(key))
-		keys.Add(key)
+		_, ok := keys[key]
+		assert.False(t, ok)
+		keys[key] = struct{}{}
 	}
 }
 
 func BenchmarkGenerateKey(b *testing.B) {
 	for range b.N {
-		_, _ = auth.GenerateKey()
+		_ = auth.GenerateKey()
 	}
 }

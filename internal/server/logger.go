@@ -1,4 +1,4 @@
-package watchlist
+package server
 
 import (
 	"log/slog"

@@ -4,7 +4,7 @@ on:
   push:
     branches:
     - master
-    - docker
+    - refactor
 
 jobs:
   test:

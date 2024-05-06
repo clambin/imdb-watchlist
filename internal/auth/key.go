@@ -6,12 +6,9 @@ import (
 )
 
 // GenerateKey generates a Sonarr API Key
-func GenerateKey() (string, error) {
+func GenerateKey() string {
 	b := make([]byte, 16) // 16 bytes = 32 nibbles = 128 bits
-	_, err := rand.Read(b)
-	var key string
-	if err == nil {
-		key = hex.EncodeToString(b)
-	}
-	return key, err
+	// in theory this could fail. On practice, it never happens.
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
 }

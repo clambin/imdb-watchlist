@@ -22,12 +22,12 @@ func TestAuthenticate(t *testing.T) {
 		},
 		{
 			name:     "missing",
-			wantCode: http.StatusForbidden,
+			wantCode: http.StatusUnauthorized,
 		},
 		{
 			name:     "invalid",
 			apiKey:   validKey + "5678",
-			wantCode: http.StatusForbidden,
+			wantCode: http.StatusUnauthorized,
 		},
 	}
 

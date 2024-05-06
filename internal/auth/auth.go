@@ -13,7 +13,8 @@ func Authenticate(apiKey string) func(next http.Handler) http.Handler {
 					return
 				}
 			}
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			w.Header().Set("Content-Type", "application/json")
+			http.Error(w, `{ "error": "missing / wrong api key in header `+APIKeyHeader+`" }`, http.StatusUnauthorized)
 		})
 	}
 }
