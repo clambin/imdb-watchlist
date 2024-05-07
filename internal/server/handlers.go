@@ -21,7 +21,7 @@ func WatchlistHandler(watcher WatchlistReader, listIDs []string, mediaTypes []im
 			list = append(list, entries.Filter(mediaTypes...)...)
 		}
 		list = unique.UniqueFunc(list, func(v imdb.Entry) string { return v.IMDBId })
-		logger.Info("watchlist entries found", "list", list)
+		logger.Debug("watchlist entries found", "list", list)
 		writeResponse(w, http.StatusOK, buildResponse(list))
 	})
 }
