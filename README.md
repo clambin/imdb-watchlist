@@ -5,7 +5,7 @@
 ![Go Report Card](https://goreportcard.com/badge/github.com/clambin/imdb-watchlist)
 ![GitHub](https://img.shields.io/github/license/clambin/imdb-watchlist?style=plastic)
 
-Import IMDB Watchlist in Sonarr
+Import IMDB Watchlist in Radarr
 
 ## Installation
 
@@ -33,9 +33,9 @@ Usage: imdb-watchlist --list=LIST [<flags>]
 
 If '-apikey' is not specified, imdb-watchlist generates & logs a key automatically.
 
-### Configuring Sonarr
+### Configuring Radarr
 
-Add an Import List in Sonarr/Radarr, specifying the API key described above.
+Add an Import List in Radarr, specifying the API key described above.
 
 ## Authors
 

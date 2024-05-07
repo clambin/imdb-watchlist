@@ -43,14 +43,16 @@ func TestRun(t *testing.T) {
 		wantCode int
 		wantBody string
 	}{
-		{
-			name:     "series",
-			apiKey:   config.APIKey,
-			path:     "/api/v3/series",
-			wantCode: http.StatusOK,
-			wantBody: `[{"title":"A TV Series","imdbId":"tt2"},{"title":"A TV Special","imdbId":"tt3"},{"title":"A TV miniseries","imdbId":"tt4"}]
-`,
-		},
+		/*
+					{
+						name:     "series",
+						apiKey:   config.APIKey,
+						path:     "/api/v3/series",
+						wantCode: http.StatusOK,
+						wantBody: `[{"title":"A TV Series","imdbId":"tt2"},{"title":"A TV Special","imdbId":"tt3"},{"title":"A TV miniseries","imdbId":"tt4"}]
+			`,
+					},
+		*/
 		{
 			name:     "radarr list",
 			apiKey:   config.APIKey,
@@ -121,15 +123,12 @@ func TestRun_Metrics(t *testing.T) {
 		require.NoError(t, Run(ctx, config, r, os.Stderr, "dev"))
 	}()
 
-	_, err := http.Get("http://localhost" + config.Addr + "/api/v3/series")
-	assert.NoError(t, err)
-	_, err = http.Get("http://localhost" + config.Addr + "/api/v3/movie")
+	_, err := http.Get("http://localhost" + config.Addr + "/api/v3/movie")
 	assert.NoError(t, err)
 
 	assert.NoError(t, testutil.CollectAndCompare(r, strings.NewReader(`
 # HELP watchlist_http_requests_total total number of http requests
 # TYPE watchlist_http_requests_total counter
 watchlist_http_requests_total{code="200",method="GET",path="/api/v3/movie"} 1
-watchlist_http_requests_total{code="200",method="GET",path="/api/v3/series"} 1
 `), "watchlist_http_requests_total"))
 }

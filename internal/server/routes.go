@@ -20,12 +20,15 @@ func addRoutes(
 	listIDs []string,
 	logger *slog.Logger,
 ) {
-	mux.Handle("GET /api/v3/series", WatchlistHandler(
-		fetcher,
-		listIDs,
-		[]imdb.EntryType{imdb.TVSeries, imdb.TVMiniSeries, imdb.TVSpecial},
-		logger.With("handler", "imdbHandler", "type", "series"),
-	))
+	// sonarr uses tvdbId as key, so imdb-watchlist doesn't work for now
+	/*
+		mux.Handle("GET /api/v3/series", WatchlistHandler(
+			fetcher,
+			listIDs,
+			[]imdb.EntryType{imdb.TVSeries, imdb.TVMiniSeries, imdb.TVSpecial},
+			logger.With("handler", "imdbHandler", "type", "series"),
+		))
+	*/
 	mux.Handle("GET /api/v3/movie", WatchlistHandler(
 		fetcher,
 		listIDs,
